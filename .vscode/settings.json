@@ -1,0 +1,8 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.project.sourcePaths": [
+        "api-gateway"
+    ],
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "maven.executable.path": "${workspaceFolder}\\lego-factory-parent\\mvnw.cmd"
+}

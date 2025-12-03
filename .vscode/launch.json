@@ -1,0 +1,81 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "UserServiceApplication",
+            "request": "launch",
+            "mainClass": "io.life.user_service.UserServiceApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "ApiGatewayApplication",
+            "request": "launch",
+            "mainClass": "src.main.java.io.life.samplefactory.gateway.ApiGatewayApplication",
+            "projectName": "LIFE_388a3494"
+        },
+        {
+            "type": "java",
+            "name": "ApiGatewayApplication",
+            "request": "launch",
+            "mainClass": "main.java.io.life.samplefactory.gateway.ApiGatewayApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "LifeBackendApplication",
+            "request": "launch",
+            "mainClass": "io.life.samplefactory.lego.LifeBackendApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "LegoFactoryParentApplication",
+            "request": "launch",
+            "mainClass": "io.life.samplefactory.lego.LifeBackendApplication",
+            "projectName": "lego-factory-parent",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=64165 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=lego-factory-parent"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-LifeBackendApplication<lego-factory-parent>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "io.life.samplefactory.lego.LifeBackendApplication",
+            "projectName": "lego-factory-parent",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-UserServiceApplication<user-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "io.life.user_service.UserServiceApplication",
+            "projectName": "user-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SimalIntegrationServiceApplication<simal-integration-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "io.life.simal_integration_service.SimalIntegrationServiceApplication",
+            "projectName": "simal-integration-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=59034 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=simal-integration-service"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MasterdataServiceApplication<masterdata-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "io.life.masterdata_service.MasterdataServiceApplication",
+            "projectName": "masterdata-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
