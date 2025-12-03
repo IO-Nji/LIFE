@@ -23,6 +23,20 @@ A microservice-based prototype that digitizes control flows for the LEGO Sample 
 - **Frontend:** React 18, Vite tooling, Axios for API calls, React Router for navigation.
 - **Tooling:** Visual Studio Code workspace, npm package manager, Node.js runtime for the frontend.
 
+## Default Accounts
+
+- `legoAdmin` / `legoPass` — provisioned automatically in the user-service with the `ADMIN` role for local development. Use this account when signing in from the frontend to manage additional users.
+
+### User-Service REST API
+
+- `POST /api/auth/login` — issue a JWT for valid credentials.
+- `GET /api/users/me` — fetch the currently authenticated user's profile.
+- `GET /api/users` *(ADMIN)* — list all users.
+- `GET /api/users/{id}` *(ADMIN)* — fetch a user by identifier.
+- `POST /api/users` *(ADMIN)* — create a new user.
+- `PUT /api/users/{id}` *(ADMIN)* — update username, role, workstation, or password.
+- `DELETE /api/users/{id}` *(ADMIN)* — remove a user.
+
 ## Project Vision
 
 The full solution will coordinate customer orders, production planning, warehouse fulfillment, and workstation execution across LEGO Sample Factory roles. Upcoming work will link the gateway to each microservice, implement authentication flows in the user-service, expose domain APIs for master data and production events, and build frontend dashboards that surface these capabilities to operators.

@@ -38,6 +38,21 @@ body {
   font-weight: 600;
 }
 
+.link-button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0;
+}
+
+.link-button:hover,
+.nav-list a:hover {
+  text-decoration: underline;
+}
+
 .app-content {
   flex: 1;
   padding: 2rem 1.5rem;
@@ -92,7 +107,19 @@ section {
   font: inherit;
 }
 
+.form-card select {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #c7cfda;
+  font: inherit;
+  background-color: #fff;
+}
+
 .form-card input:disabled {
+  background: #f2f4f8;
+}
+
+.form-card select:disabled {
   background: #f2f4f8;
 }
 

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.life.user_service.dto.auth.LoginRequest;
-import io.life.user_service.dto.auth.UserRegistrationRequest;
+import io.life.user_service.dto.user.UserCreateRequest;
 import io.life.user_service.entity.User;
 import io.life.user_service.entity.UserRole;
 import io.life.user_service.repository.UserRepository;
@@ -72,18 +72,18 @@ class AuthControllerIntegrationTests {
     }
 
     @Test
-    void registerCreatesUserWhenAdminTokenProvided() throws Exception {
+    void adminCanCreateUserThroughUserEndpoint() throws Exception {
         userRepository.save(new User("admin", passwordEncoder.encode("adminPass1"), UserRole.ADMIN, null));
 
         String adminToken = loginAndExtractToken("admin", "adminPass1");
 
-        UserRegistrationRequest request = new UserRegistrationRequest();
+        UserCreateRequest request = new UserCreateRequest();
         request.setUsername("new-user");
         request.setPassword("newPass1");
         request.setRole(UserRole.VIEWER);
         request.setWorkstationId(99L);
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))

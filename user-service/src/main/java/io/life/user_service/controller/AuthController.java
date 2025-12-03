@@ -1,8 +1,6 @@
 package io.life.user_service.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.life.user_service.dto.auth.LoginRequest;
 import io.life.user_service.dto.auth.LoginResponse;
-import io.life.user_service.dto.auth.UserRegistrationRequest;
-import io.life.user_service.dto.user.UserDto;
 import io.life.user_service.dto.user.UserMapper;
 import io.life.user_service.entity.User;
 import io.life.user_service.security.JwtTokenProvider;
@@ -57,11 +53,4 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/register")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto> register(@Valid @RequestBody UserRegistrationRequest request) {
-        User user = userService.registerUser(request.getUsername(), request.getPassword(), request.getRole(),
-            request.getWorkstationId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserMapper.toDto(user));
-    }
 }

@@ -1,15 +1,19 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const LOGIN_ENDPOINT = "/api-gateway/user-service/login";
+import { LOGIN_ENDPOINT, storeSession } from "../api/apiConfig";
 
-function LoginPage() {
+function LoginPage({ onLogin, session }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  if (session) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -34,12 +38,9 @@ function LoginPage() {
       });
 
       const { token, tokenType, expiresAt, user } = response.data;
-      localStorage.setItem("authToken", token);
-      localStorage.setItem(
-        "authSession",
-        JSON.stringify({ token, tokenType, expiresAt, user })
-      );
-
+      const sessionPayload = { token, tokenType, expiresAt, user };
+      storeSession(sessionPayload);
+      onLogin?.(sessionPayload);
       setSuccess("Login successful. Redirecting to dashboard...");
       setTimeout(() => navigate("/dashboard"), 750);
     } catch (requestError) {
