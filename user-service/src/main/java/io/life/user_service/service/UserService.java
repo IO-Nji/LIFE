@@ -1,5 +1,6 @@
 package io.life.user_service.service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -40,6 +41,19 @@ public class UserService {
             return Optional.empty();
         }
         return userRepository.findByUsername(username.trim());
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> findById(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+        return userRepository.findById(id);
     }
 
     private void validateInputs(String username, String rawPassword, UserRole role) {

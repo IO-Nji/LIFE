@@ -15,6 +15,9 @@ function HomePage() {
       <Link className="primary-link" to="/dashboard">
         Go to dashboard
       </Link>
+      <p>
+        Ready to access dashboards? <Link to="/login">Sign in here</Link> once your account is provisioned.
+      </p>
     </section>
   );
 }
