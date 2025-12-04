@@ -1,17 +1,15 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import axios from "axios";
 
-import { LOGIN_ENDPOINT, storeSession } from "../api/apiConfig";
+import { useAuth } from "../context/AuthContext.jsx";
 
-function LoginPage({ onLogin, session }) {
+function LoginPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, login, loading } = useAuth();
   const [form, setForm] = useState({ username: "", password: "" });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  if (session) {
+  if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -23,33 +21,17 @@ function LoginPage({ onLogin, session }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
-    setSuccess("");
 
     if (!form.username.trim() || !form.password) {
       setError("Username and password are required.");
       return;
     }
 
-    setLoading(true);
     try {
-      const response = await axios.post(LOGIN_ENDPOINT, {
-        username: form.username.trim(),
-        password: form.password,
-      });
-
-      const { token, tokenType, expiresAt, user } = response.data;
-      const sessionPayload = { token, tokenType, expiresAt, user };
-      storeSession(sessionPayload);
-      onLogin?.(sessionPayload);
-      setSuccess("Login successful. Redirecting to dashboard...");
-      setTimeout(() => navigate("/dashboard"), 750);
+      await login(form.username, form.password);
+      navigate("/dashboard");
     } catch (requestError) {
-      const message =
-        requestError.response?.data?.message ||
-        "Login failed. Check your credentials and try again.";
-      setError(message);
-    } finally {
-      setLoading(false);
+      setError(requestError.message);
     }
   };
 
@@ -89,11 +71,6 @@ function LoginPage({ onLogin, session }) {
       {error && (
         <p className="form-error" role="alert">
           {error}
-        </p>
-      )}
-      {success && (
-        <p className="form-success" role="status">
-          {success}
         </p>
       )}
     </section>

@@ -38,6 +38,16 @@ body {
   font-weight: 600;
 }
 
+.nav-user {
+  color: #d0e2ff;
+  font-size: 0.9rem;
+  align-self: center;
+}
+
+.nav-user strong {
+  color: #ffffff;
+}
+
 .link-button {
   background: none;
   border: none;

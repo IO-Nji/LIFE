@@ -1,7 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 
-import { USERS_ENDPOINT, clearStoredSession } from "../api/apiConfig";
+import { USERS_ENDPOINT } from "../api/apiConfig";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const ROLE_OPTIONS = [
   "ADMIN",
@@ -15,7 +16,8 @@ const ROLE_OPTIONS = [
   "VIEWER",
 ];
 
-function UserManagementPage({ session, onSessionExpired }) {
+function UserManagementPage() {
+  const { session, isAdmin, logout } = useAuth();
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -26,7 +28,6 @@ function UserManagementPage({ session, onSessionExpired }) {
   const [submitting, setSubmitting] = useState(false);
 
   const authToken = session?.token ?? null;
-  const isAdmin = session?.user?.role === "ADMIN";
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -68,8 +69,7 @@ function UserManagementPage({ session, onSessionExpired }) {
       setForm({ username: "", password: "", role: form.role, workstationId: "" });
     } catch (error) {
       if (error.response?.status === 401) {
-        clearStoredSession();
-        onSessionExpired?.();
+        logout();
       }
 
       const message =

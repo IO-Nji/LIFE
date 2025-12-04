@@ -4,5 +4,5 @@
         "api-gateway"
     ],
     "java.configuration.updateBuildConfiguration": "automatic",
-    "maven.executable.path": "${workspaceFolder}\\lego-factory-parent\\mvnw.cmd"
+    "maven.executable.path": ".\\lego-factory-parent\\mvnw.cmd"
 }

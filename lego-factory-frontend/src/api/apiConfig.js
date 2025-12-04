@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_USER_SERVICE_URL ?? "http://localhost:8012";
+const API_BASE_URL = import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:8011";
 
 export const LOGIN_ENDPOINT = `${API_BASE_URL}/api/auth/login`;
 export const USERS_ENDPOINT = `${API_BASE_URL}/api/users`;
