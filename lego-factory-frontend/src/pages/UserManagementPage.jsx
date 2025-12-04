@@ -26,6 +26,7 @@ function UserManagementPage() {
   });
   const [feedback, setFeedback] = useState({ type: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [createdUser, setCreatedUser] = useState(null);
 
   const authToken = session?.token ?? null;
 
@@ -59,13 +60,18 @@ function UserManagementPage() {
         workstationId: form.workstationId ? Number(form.workstationId) : null,
       };
 
-      await axios.post(USERS_ENDPOINT, payload, {
+      const response = await axios.post(USERS_ENDPOINT, payload, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
       });
 
-      setFeedback({ type: "success", message: `User ${payload.username} created.` });
+      const userData = response.data;
+      setCreatedUser(userData);
+      setFeedback({ 
+        type: "success", 
+        message: `User "${userData.username}" created successfully (ID: ${userData.id}, Role: ${userData.role})` 
+      });
       setForm({ username: "", password: "", role: form.role, workstationId: "" });
     } catch (error) {
       if (error.response?.status === 401) {
@@ -174,6 +180,19 @@ function UserManagementPage() {
         >
           {feedback.message}
         </p>
+      )}
+      {createdUser && (
+        <div className="form-success-details">
+          <h3>Created User Details:</h3>
+          <ul>
+            <li><strong>ID:</strong> {createdUser.id}</li>
+            <li><strong>Username:</strong> {createdUser.username}</li>
+            <li><strong>Role:</strong> {createdUser.role}</li>
+            {createdUser.workstationId && (
+              <li><strong>Workstation ID:</strong> {createdUser.workstationId}</li>
+            )}
+          </ul>
+        </div>
       )}
     </section>
   );

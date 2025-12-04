@@ -4,5 +4,6 @@
         "api-gateway"
     ],
     "java.configuration.updateBuildConfiguration": "automatic",
-    "maven.executable.path": ".\\lego-factory-parent\\mvnw.cmd"
+    "maven.executable.path": ".\\lego-factory-parent\\mvnw.cmd",
+    "reindeer-db.activeConnectionId": "conn_1764873596169_dv53b3olj"
 }
