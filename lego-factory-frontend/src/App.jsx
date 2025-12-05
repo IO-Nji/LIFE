@@ -7,6 +7,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import PlantWarehousePage from "./pages/PlantWarehousePage.jsx";
 import ModulesSupermarketPage from "./pages/ModulesSupermarketPage.jsx";
+import ProductionPlanningPage from "./pages/ProductionPlanningPage.jsx";
 import ProductionControlPage from "./pages/ProductionControlPage.jsx";
 import AssemblyControlPage from "./pages/AssemblyControlPage.jsx";
 import PartsSupplyWarehousePage from "./pages/PartsSupplyWarehousePage.jsx";
@@ -17,7 +18,9 @@ import { useAuth } from "./context/AuthContext.jsx";
 function App() {
   const { isAuthenticated, isAdmin, isPlantWarehouse, session } = useAuth();
 
+  // Define all role checks for consistent guard logic
   const isModulesSupermarket = session?.user?.role === "MODULES_SUPERMARKET";
+  const isProductionPlanning = session?.user?.role === "PRODUCTION_PLANNING";
   const isProductionControl = session?.user?.role === "PRODUCTION_CONTROL";
   const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
   const isPartsSupplyWarehouse = session?.user?.role === "PARTS_SUPPLY_WAREHOUSE";
@@ -71,6 +74,16 @@ function App() {
           element={
             isModulesSupermarket ? (
               <ModulesSupermarketPage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="production-planning"
+          element={
+            isProductionPlanning ? (
+              <ProductionPlanningPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
