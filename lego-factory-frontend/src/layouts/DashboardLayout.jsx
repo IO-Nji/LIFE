@@ -12,6 +12,7 @@ function DashboardLayout() {
           <ul className="nav-list">
             <li><Link to="/">Home</Link></li>
             <li><Link to="/dashboard">Dashboard</Link></li>
+            {isAuthenticated && <li><Link to="/products">Products</Link></li>}
             {isAdmin && <li><Link to="/users">User Admin</Link></li>}
             {!isAuthenticated && <li><Link to="/login">Login</Link></li>}
             {isAuthenticated && (

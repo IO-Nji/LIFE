@@ -1,3 +1,0 @@
-io\life\samplefactory\gateway\ApiGatewayApplication.class
-io\life\samplefactory\gateway\security\GatewayJwtProperties.class
-io\life\samplefactory\gateway\security\JwtAuthenticationFilter.class

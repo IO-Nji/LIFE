@@ -3,6 +3,7 @@ import HomePage from "./pages/HomePage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import UserManagementPage from "./pages/UserManagementPage.jsx";
+import ProductsPage from "./pages/ProductsPage.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -26,6 +27,10 @@ function App() {
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
           }
+        />
+        <Route
+          path="products"
+          element={isAuthenticated ? <ProductsPage /> : <Navigate to="/login" replace />}
         />
       </Route>
       <Route path="/login" element={<LoginPage />} />
