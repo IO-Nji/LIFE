@@ -1,6 +1,7 @@
 # LEGO Sample Factory Control System
 
-A microservice-based prototype that digitizes control flows for the LEGO Sample Factory. The platform replaces paper-heavy processes with services that manage gateway routing, user management, reference data, inventory tracking, and workstation role assignments, accompanied by a React frontend for operator dashboards.
+A microservice-based prototype that digitizes control flows for the LEGO Sample Factory. This application simulates the Supply Chain 
+process of a manufacturing industry. The platform replaces paper-heavy processes with services that manage gateway routing, user management, reference data, inventory tracking, and workstation role assignments, accompanied by a React frontend for operator dashboards.
 
 ## Implemented Modules
 

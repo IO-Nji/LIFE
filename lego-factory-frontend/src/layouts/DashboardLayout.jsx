@@ -8,6 +8,16 @@ function DashboardLayout() {
   const isProductionControl = session?.user?.role === "PRODUCTION_CONTROL";
   const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
   const isPartsSupplyWarehouse = session?.user?.role === "PARTS_SUPPLY_WAREHOUSE";
+  const isManufacturingWorkstation = session?.user?.role === "MANUFACTURING_WORKSTATION";
+
+  // Determine which manufacturing station to display based on workstation type
+  const getManufacturingWorkstationType = () => {
+    const workstationName = session?.user?.workstationName || "";
+    if (workstationName.includes("Injection")) return "injection-molding";
+    if (workstationName.includes("Pre-Production")) return "parts-pre-production";
+    if (workstationName.includes("Finishing")) return "part-finishing";
+    return "injection-molding"; // default
+  };
 
   return (
     <div className="app-shell">
@@ -28,6 +38,7 @@ function DashboardLayout() {
             {isProductionControl && <li><Link to="/production-control">🏭 Production Control</Link></li>}
             {isAssemblyControl && <li><Link to="/assembly-control">⚙️ Assembly Control</Link></li>}
             {isPartsSupplyWarehouse && <li><Link to="/parts-supply-warehouse">📦 Parts Supply Warehouse</Link></li>}
+            {isManufacturingWorkstation && <li><Link to={`/manufacturing/${getManufacturingWorkstationType()}`}>🔧 Manufacturing Station</Link></li>}
             {isAdmin && <li><Link to="/admin-dashboard">📊 Admin Dashboard</Link></li>}
             {isAdmin && <li><Link to="/users">User Admin</Link></li>}
             {!isAuthenticated && <li><Link to="/login">Login</Link></li>}

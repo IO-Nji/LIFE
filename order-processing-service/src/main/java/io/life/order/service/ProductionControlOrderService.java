@@ -7,11 +7,15 @@ import io.life.order.entity.ProductionControlOrder;
 import io.life.order.repository.ProductionControlOrderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -27,10 +31,23 @@ public class ProductionControlOrderService {
 
     private final ProductionControlOrderRepository repository;
     private final SupplyOrderService supplyOrderService;
+    private final RestTemplate restTemplate;
+    private final InventoryService inventoryService;
 
-    public ProductionControlOrderService(ProductionControlOrderRepository repository, SupplyOrderService supplyOrderService) {
+    @Value("${simal.service.url:http://localhost:8018}")
+    private String simalServiceUrl;
+
+    @Value("${modules.supermarket.workstation.id:8}")
+    private Long modulesSupermarketWorkstationId;
+
+    public ProductionControlOrderService(ProductionControlOrderRepository repository, 
+                                        SupplyOrderService supplyOrderService,
+                                        RestTemplate restTemplate,
+                                        InventoryService inventoryService) {
         this.repository = repository;
         this.supplyOrderService = supplyOrderService;
+        this.restTemplate = restTemplate;
+        this.inventoryService = inventoryService;
     }
 
     /**
@@ -154,6 +171,105 @@ public class ProductionControlOrderService {
         logger.info("Completed production on control order {}", order.getControlOrderNumber());
 
         return mapToDTO(updated);
+    }
+
+    /**
+     * Complete manufacturing production with SimAL integration and Modules Supermarket inventory update.
+     * This is called when a manufacturing workstation completes their assigned task.
+     * 
+     * Flow:
+     * 1. Update control order status to COMPLETED with actual completion time
+     * 2. Call SimAL to update production schedule status
+     * 3. Credit Modules Supermarket (workstation 8) with completed modules/products
+     *
+     * @param id Control order ID
+     * @return Updated control order DTO
+     */
+    public ProductionControlOrderDTO completeManufacturingProduction(Long id) {
+        ProductionControlOrder order = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
+
+        if (!"IN_PROGRESS".equals(order.getStatus())) {
+            throw new IllegalStateException("Cannot complete - order status is " + order.getStatus());
+        }
+
+        // Step 1: Update control order status and timestamps
+        order.setStatus("COMPLETED");
+        order.setActualCompletionTime(LocalDateTime.now());
+        
+        if (order.getActualStartTime() != null) {
+            long minutes = java.time.temporal.ChronoUnit.MINUTES.between(
+                    order.getActualStartTime(),
+                    order.getActualCompletionTime()
+            );
+            order.setActualDurationMinutes((int) minutes);
+        }
+
+        ProductionControlOrder updated = repository.save(order);
+        logger.info("Completed manufacturing production on control order {}", order.getControlOrderNumber());
+
+        // Step 2: Call SimAL to update schedule status (fire-and-forget)
+        try {
+            updateSimalScheduleStatus(order.getSimalScheduleId(), "COMPLETED");
+        } catch (Exception e) {
+            logger.warn("Failed to update SimAL schedule status for {}: {}", order.getSimalScheduleId(), e.getMessage());
+            // Don't throw - completion already succeeded, SimAL update is secondary
+        }
+
+        // Step 3: Credit Modules Supermarket inventory (fire-and-forget)
+        try {
+            creditModulesSupermarket(order.getSourceProductionOrderId(), 1);
+        } catch (Exception e) {
+            logger.warn("Failed to credit Modules Supermarket for order {}: {}", order.getSourceProductionOrderId(), e.getMessage());
+            // Don't throw - completion already succeeded, inventory update is secondary
+        }
+
+        return mapToDTO(updated);
+    }
+
+    /**
+     * Update SimAL schedule status via SimAL Integration Service.
+     */
+    private void updateSimalScheduleStatus(String scheduleId, String status) {
+        try {
+            String url = simalServiceUrl + "/api/simal/scheduled-orders/" + scheduleId + "/status";
+            Map<String, Object> request = new HashMap<>();
+            request.put("status", status);
+            request.put("completedAt", LocalDateTime.now().toString());
+            
+            restTemplate.postForObject(url, request, String.class);
+            logger.info("Updated SimAL schedule {} status to {}", scheduleId, status);
+        } catch (Exception e) {
+            logger.error("Failed to update SimAL schedule status for {}", scheduleId, e);
+            throw new RuntimeException("SimAL update failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Credit Modules Supermarket inventory when manufacturing completes.
+     * Awards one module unit to Modules Supermarket (workstation 8).
+     */
+    private void creditModulesSupermarket(Long productionOrderId, Integer quantity) {
+        try {
+            // Award to Modules Supermarket - we assume product ID 1 for completed modules
+            // This could be enhanced to track actual module IDs based on production order
+            boolean credited = inventoryService.updateStock(
+                    modulesSupermarketWorkstationId,
+                    1L, // Product ID 1 represents completed modules
+                    -quantity  // Negative to ADD to inventory
+            );
+            
+            if (credited) {
+                logger.info("Credited Modules Supermarket with {} module unit(s) for production order {}", 
+                        quantity, productionOrderId);
+            } else {
+                logger.warn("Failed to credit Modules Supermarket for production order {}", productionOrderId);
+                throw new RuntimeException("Inventory credit failed");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to credit Modules Supermarket for order {}", productionOrderId, e);
+            throw new RuntimeException("Inventory credit failed: " + e.getMessage(), e);
+        }
     }
 
     /**

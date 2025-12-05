@@ -10,6 +10,7 @@ import ModulesSupermarketPage from "./pages/ModulesSupermarketPage.jsx";
 import ProductionControlPage from "./pages/ProductionControlPage.jsx";
 import AssemblyControlPage from "./pages/AssemblyControlPage.jsx";
 import PartsSupplyWarehousePage from "./pages/PartsSupplyWarehousePage.jsx";
+import ManufacturingWorkstationPage from "./pages/ManufacturingWorkstationPage.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -20,6 +21,7 @@ function App() {
   const isProductionControl = session?.user?.role === "PRODUCTION_CONTROL";
   const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
   const isPartsSupplyWarehouse = session?.user?.role === "PARTS_SUPPLY_WAREHOUSE";
+  const isManufacturingWorkstation = session?.user?.role === "MANUFACTURING_WORKSTATION";
 
   return (
     <Routes>
@@ -98,6 +100,16 @@ function App() {
           element={
             isPartsSupplyWarehouse ? (
               <PartsSupplyWarehousePage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="manufacturing/:workstationType"
+          element={
+            isManufacturingWorkstation ? (
+              <ManufacturingWorkstationPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
