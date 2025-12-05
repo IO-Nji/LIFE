@@ -82,6 +82,14 @@ A microservice-based prototype that digitizes control flows for the LEGO Sample 
 - `PATCH /api/customer-orders/{id}/status` — update order status.
 - `DELETE /api/customer-orders/{id}` — delete order.
 
+### SimAL-Integration-Service REST API (Port 8016, routed via `/api/simal/**`)
+
+- `POST /api/simal/production-order` — submit production order for scheduling.
+- `GET /api/simal/scheduled-orders` — list all scheduled orders.
+- `GET /api/simal/scheduled-orders/{scheduleId}` — fetch specific schedule by ID.
+- `GET /api/simal/scheduled-orders/order/{orderNumber}` — fetch schedule by customer order number.
+- `POST /api/simal/update-time` — update production time and status for a task.
+
 ## Service Startup Order
 
 ### 1. **User Service** (Port 8012)
@@ -120,7 +128,16 @@ cd 'e:\My Documents\DEV\Java\Project\LIFE\order-processing-service'
 .\mvnw spring-boot:run
 ```
 
-### 5. **API Gateway** (Port 8011)
+### 5. **SimAL Integration Service** (Port 8016)
+
+Provides production scheduling and order simulation. Requires gateway to be ready before routing `/api/simal/**` requests.
+
+```powershell
+cd 'e:\My Documents\DEV\Java\Project\LIFE\simal-integration-service'
+.\mvnw spring-boot:run
+```
+
+### 6. **API Gateway** (Port 8011)
 
 Routes all frontend requests to downstream services. Requires all backend services to be running.
 
@@ -129,7 +146,7 @@ cd 'e:\My Documents\DEV\Java\Project\LIFE\api-gateway'
 .\mvnw spring-boot:run
 ```
 
-### 6. **Frontend** (Port 5173 or 5174)
+### 7. **Frontend** (Port 5173 or 5174)
 
 React development server. Communicates with Gateway at `http://localhost:8011`.
 
@@ -183,10 +200,20 @@ Each service maintains its own H2 file-based database in the project root `data/
     - Property-value pair formatting for compact display
     - Color-coded status badges (Yellow/Blue/Green/Red/Gray)
     - Separator lines between statistics rows
+- ✅ **Day 12 - SimAL Integration Service (Mock)**:
+  - **SimAL DTOs**: Created `SimalProductionOrderRequest`, `SimalScheduledOrderResponse`, `SimalUpdateTimeRequest`.
+  - **Mock Controller**: Implemented `SimalController` with 5 REST endpoints (production-order, scheduled-orders, update-time).
+  - **Workstation Assignment**: Intelligent workstation allocation based on work type (MANUFACTURING, ASSEMBLY, WAREHOUSE).
+  - **Time Calculation**: Automatic scheduling with ISO 8601 timestamps and task sequencing.
+  - **In-Memory Storage**: Production schedules stored in HashMap for mock demonstration.
+  - **API Gateway Integration**: Added route `/api/simal/**` → `http://localhost:8016`.
+  - **CORS Configuration**: Enabled for frontend communication (ports 5173 and 5174).
+  - **Realistic Mock Data**: Returns authentic schedule data with task sequences, durations, and workstation names.
+    - Separator lines between statistics rows
 
 ## Project Roadmap
 
 **Week 2 (Days 8-11)**: Customer order creation, fulfillment logic, warehouse management, and modules supermarket. ✅ Days 8-11 complete.
-**Week 3 (Days 12-15)**: Production planning, SimAL integration, and schedule optimization.
+**Week 3 (Days 12-15)**: SimAL integration, schedule optimization, and order-to-schedule linking. ✅ Day 12 complete.
 **Week 4 (Days 16-20)**: Workstation execution, real-time status updates, and production dashboards.
 **Week 5 (Days 21-25)**: Prototype refinement and stakeholder showcase.
