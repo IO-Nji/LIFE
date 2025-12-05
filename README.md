@@ -41,6 +41,7 @@ A microservice-based prototype that digitizes control flows for the LEGO Sample 
 ## Default Accounts
 
 - `legoAdmin` / `legoPass` — provisioned automatically in the user-service with the `ADMIN` role for local development. Use this account when signing in from the frontend to manage additional users.
+- `warehouseOperator` / `warehousePass` — provisioned automatically in the user-service with the `PLANT_WAREHOUSE` role for testing warehouse operations. Assigned to the first available PLANT_WAREHOUSE workstation.
 
 ## API Documentation
 
@@ -147,18 +148,24 @@ Each service maintains its own H2 file-based database in the project root `data/
 
 **Note:** These files are automatically created on first run. To reset data, stop all services and delete the `data/` directory.
 
-## Recent Implementation (Day 8)
+## Recent Implementation (Day 8-9)
 
 - ✅ **Order Processing Service**: Created port 8015 service for customer order management.
 - ✅ **Order Entities**: Implemented `CustomerOrder` and `OrderItem` entities with relationships.
 - ✅ **Order Repository & Service**: Full CRUD operations with workstation and status filtering.
-- ✅ **Order API Controller**: REST endpoints for order creation, retrieval, and status management.
+- ✅ **Order API Controller**: REST endpoints for order creation, retrieval, and status management with PLANT_WAREHOUSE authorization.
+- ✅ **Spring Security Integration**: Configured JWT authentication and role-based access control in order-processing-service.
+- ✅ **Plant Warehouse Dashboard**: Created React component displaying product variants, order creation form, and recent orders.
+- ✅ **Order Creation UI**: Form to select products, enter quantities, and submit orders via API Gateway.
+- ✅ **Warehouse User**: Created `warehouseOperator` / `warehousePass` account with PLANT_WAREHOUSE role for testing.
+- ✅ **Navigation Integration**: Added "Warehouse" link to navigation (visible only for PLANT_WAREHOUSE users).
+- ✅ **Status Badges**: Color-coded order status display (PENDING, CONFIRMED, PROCESSING, COMPLETED, CANCELLED).
 - ✅ **Gateway Integration**: Added route `/api/customer-orders/**` → `http://localhost:8015`.
 - ✅ **Service Builds**: All services compile and run successfully.
 
 ## Project Roadmap
 
-**Week 2 (Days 8-10)**: Customer order creation, fulfillment logic, and warehouse management.
+**Week 2 (Days 8-10)**: Customer order creation, fulfillment logic, and warehouse management. ✅ Days 8-9 complete.
 **Week 3 (Days 11-15)**: Production planning, SimAL integration, and schedule optimization.
 **Week 4 (Days 16-20)**: Workstation execution, real-time status updates, and production dashboards.
 **Week 5 (Days 21-25)**: Prototype refinement and stakeholder showcase.

@@ -9,7 +9,9 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
@@ -60,8 +62,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith(BEARER_PREFIX)) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return sendJsonError(exchange, HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header");
         }
 
         String token = authHeader.substring(BEARER_PREFIX.length());
@@ -78,9 +79,16 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 .build();
             return chain.filter(exchange.mutate().request(mutated).build());
         } catch (JwtException ex) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return sendJsonError(exchange, HttpStatus.UNAUTHORIZED, "Invalid or expired JWT token");
         }
+    }
+
+    private Mono<Void> sendJsonError(ServerWebExchange exchange, HttpStatus status, String message) {
+        ServerHttpResponse response = exchange.getResponse();
+        response.setStatusCode(status);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        String json = "{\"error\":\"" + message + "\",\"status\":" + status.value() + "}";
+        return response.writeWith(Mono.just(response.bufferFactory().wrap(json.getBytes(StandardCharsets.UTF_8))));
     }
 
     private boolean isPublicPath(String path) {

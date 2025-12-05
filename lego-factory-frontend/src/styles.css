@@ -255,6 +255,178 @@ section {
   background: #c6c9cd;
 }
 
+/* Plant Warehouse Page Styles */
+.warehouse-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 2rem;
+  max-width: 1400px;
+  margin-top: 2rem;
+}
+
+.create-order-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e0e0e0;
+}
+
+.create-order-section h3 {
+  margin-top: 0;
+  color: #0b5394;
+  margin-bottom: 1rem;
+}
+
+.products-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  background: white;
+}
+
+.products-table thead {
+  background: #0b5394;
+  color: white;
+}
+
+.products-table th,
+.products-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.products-table tbody tr:hover {
+  background: #f5f5f5;
+}
+
+.quantity-input {
+  width: 100px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+}
+
+.primary-button {
+  background: #0b5394;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #073d73;
+}
+
+.primary-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.orders-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e0e0e0;
+  height: fit-content;
+}
+
+.orders-section h3 {
+  margin-top: 0;
+  color: #0b5394;
+  margin-bottom: 1rem;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.order-card {
+  background: white;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.order-card p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-confirmed {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-processing {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.status-completed {
+  background: #d1e7dd;
+  color: #0a3622;
+}
+
+.status-cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  border: 1px solid #f5c6cb;
+}
+
+.success-message {
+  background: #d1e7dd;
+  color: #0a3622;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  border: 1px solid #badbcc;
+}
+
+@media (max-width: 1024px) {
+  .warehouse-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-section {
+    height: auto;
+  }
+
+  .orders-list {
+    max-height: none;
+  }
+}
 .secondary-link:disabled {
   opacity: 0.65;
   cursor: not-allowed;

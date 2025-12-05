@@ -2,7 +2,7 @@ import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 function DashboardLayout() {
-  const { isAuthenticated, isAdmin, logout, session } = useAuth();
+  const { isAuthenticated, isAdmin, isPlantWarehouse, logout, session } = useAuth();
 
   return (
     <div className="app-shell">
@@ -18,6 +18,7 @@ function DashboardLayout() {
             <li><Link to="/">Home</Link></li>
             <li><Link to="/dashboard">Dashboard</Link></li>
             {isAuthenticated && <li><Link to="/products">Products</Link></li>}
+            {isPlantWarehouse && <li><Link to="/warehouse">Warehouse</Link></li>}
             {isAdmin && <li><Link to="/users">User Admin</Link></li>}
             {!isAuthenticated && <li><Link to="/login">Login</Link></li>}
             {isAuthenticated && (

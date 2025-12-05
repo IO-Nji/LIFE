@@ -63,6 +63,16 @@
             "projectName": "masterdata-service",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-OrderProcessingServiceApplication<order-processing-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "io.life.order.OrderProcessingServiceApplication",
+            "projectName": "order-processing-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

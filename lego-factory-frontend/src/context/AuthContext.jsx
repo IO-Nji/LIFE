@@ -54,6 +54,7 @@ export function AuthProvider({ children }) {
       session,
       isAuthenticated: Boolean(session),
       isAdmin: session?.user?.role === "ADMIN",
+      isPlantWarehouse: session?.user?.role === "PLANT_WAREHOUSE",
       loading,
       login,
       logout,

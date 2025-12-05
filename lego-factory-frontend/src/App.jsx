@@ -4,11 +4,12 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import UserManagementPage from "./pages/UserManagementPage.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
+import PlantWarehousePage from "./pages/PlantWarehousePage.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 function App() {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, isPlantWarehouse } = useAuth();
 
   return (
     <Routes>
@@ -31,6 +32,16 @@ function App() {
         <Route
           path="products"
           element={isAuthenticated ? <ProductsPage /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="warehouse"
+          element={
+            isPlantWarehouse ? (
+              <PlantWarehousePage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
         />
       </Route>
       <Route path="/login" element={<LoginPage />} />

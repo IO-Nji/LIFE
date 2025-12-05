@@ -2,15 +2,16 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 function DashboardPage() {
-  const [status, setStatus] = useState("Fetching service status...");
+  const [status, setStatus] = useState("Initializing...");
 
   useEffect(() => {
     async function fetchStatus() {
       try {
-        const response = await axios.get("/api/status");
-        setStatus(`API gateway responded with: ${response.status}`);
+        // Check if gateway is responding by calling a public endpoint
+        const response = await axios.get("/api/masterdata/workstations");
+        setStatus(`✅ API gateway is operational (${response.data?.length || 0} workstations available)`);
       } catch (error) {
-        setStatus("Gateway not reachable yet. Keep services running.");
+        setStatus("⚠️ Gateway not fully reachable. Check service status.");
       }
     }
 
