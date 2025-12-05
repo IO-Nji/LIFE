@@ -68,6 +68,7 @@ body {
   padding: 2rem 1.5rem;
   max-width: 960px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .primary-link {
@@ -97,6 +98,30 @@ section {
 
 .form-section {
   max-width: 420px;
+}
+
+.login-page .form-section {
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.user-management-landscape {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 1400px;
+}
+
+.user-management-landscape .form-section {
+  max-width: 100%;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .user-management-landscape {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-card {
@@ -147,3 +172,85 @@ section {
   color: #1b5e20;
   margin-top: 1rem;
 }
+
+.form-success-details {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #e6f4ea;
+  border-left: 4px solid #1b5e20;
+  border-radius: 0.5rem;
+}
+
+.form-success-details h3 {
+  margin: 0 0 0.75rem 0;
+  color: #1b5e20;
+}
+
+.form-success-details ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #1b5e20;
+}
+
+.users-table-container {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.users-table thead {
+  background-color: #f0f3f8;
+}
+
+.users-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #212121;
+  border-bottom: 2px solid #c7cfda;
+}
+
+.users-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e8eaed;
+}
+
+.users-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.users-table select {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid #c7cfda;
+  font: inherit;
+  background-color: #fff;
+}
+
+.secondary-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #dadce0;
+  color: #3c4043;
+  text-decoration: none;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.secondary-link:hover:not(:disabled) {
+  background: #c6c9cd;
+}
+
+.secondary-link:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+

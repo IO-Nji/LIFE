@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import io.life.masterdata.entity.Module;
 import io.life.masterdata.entity.Part;
 import io.life.masterdata.entity.ProductVariant;
-import io.life.masterdata.entity.Workstation;
 import io.life.masterdata.service.ModuleService;
 import io.life.masterdata.service.PartService;
 import io.life.masterdata.service.ProductVariantService;

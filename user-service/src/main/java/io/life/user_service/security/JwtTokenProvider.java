@@ -20,6 +20,7 @@ import javax.crypto.SecretKey;
 public class JwtTokenProvider {
 
     private static final String ROLE_CLAIM = "role";
+    private static final String WORKSTATION_ID_CLAIM = "workstationId";
 
     private final JwtProperties properties;
     private final SecretKey signingKey;
@@ -36,6 +37,7 @@ public class JwtTokenProvider {
         String tokenValue = Jwts.builder()
             .setSubject(user.getUsername())
             .claim(ROLE_CLAIM, user.getRole().name())
+            .claim(WORKSTATION_ID_CLAIM, user.getWorkstationId())
             .setIssuedAt(Date.from(now))
             .setExpiration(Date.from(expiresAt))
             .signWith(signingKey, SignatureAlgorithm.HS256)
@@ -60,6 +62,14 @@ public class JwtTokenProvider {
     public UserRole extractRole(String token) {
         String role = parseClaims(token).getBody().get(ROLE_CLAIM, String.class);
         return role != null ? UserRole.valueOf(role) : null;
+    }
+
+    public Long extractWorkstationId(String token) {
+        Object workstationId = parseClaims(token).getBody().get(WORKSTATION_ID_CLAIM);
+        if (workstationId instanceof Number) {
+            return ((Number) workstationId).longValue();
+        }
+        return null;
     }
 
     private Jws<Claims> parseClaims(String token) {

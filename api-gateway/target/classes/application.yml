@@ -7,21 +7,26 @@ spring:
         # Remove hop-by-hop headers explicitly; filter name changed in Spring Cloud 2024
         - RemoveRequestHeader=connection
         - RemoveRequestHeader=keep-alive
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
       globalcors:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - http://localhost:5173
-              - http://localhost:5174
-              - http://127.0.0.1:5173
-              - http://127.0.0.1:5174
+              - "http://localhost:5173"
+              - "http://localhost:5174"
+              - "http://127.0.0.1:5173"
+              - "http://127.0.0.1:5174"
             allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
+              - "GET"
+              - "POST"
+              - "PUT"
+              - "DELETE"
+              - "OPTIONS"
+              - "PATCH"
+              - "HEAD"
+            allowedHeaders:
+              - "*"
+            maxAge: 3600
             allowCredentials: true
       routes:
         - id: user-service-auth
