@@ -6,6 +6,8 @@ import UserManagementPage from "./pages/UserManagementPage.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import PlantWarehousePage from "./pages/PlantWarehousePage.jsx";
 import ModulesSupermarketPage from "./pages/ModulesSupermarketPage.jsx";
+import ProductionControlPage from "./pages/ProductionControlPage.jsx";
+import AssemblyControlPage from "./pages/AssemblyControlPage.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -13,6 +15,8 @@ function App() {
   const { isAuthenticated, isAdmin, isPlantWarehouse, session } = useAuth();
 
   const isModulesSupermarket = session?.user?.role === "MODULES_SUPERMARKET";
+  const isProductionControl = session?.user?.role === "PRODUCTION_CONTROL";
+  const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
 
   return (
     <Routes>
@@ -51,6 +55,26 @@ function App() {
           element={
             isModulesSupermarket ? (
               <ModulesSupermarketPage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="production-control"
+          element={
+            isProductionControl ? (
+              <ProductionControlPage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="assembly-control"
+          element={
+            isAssemblyControl ? (
+              <AssemblyControlPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )

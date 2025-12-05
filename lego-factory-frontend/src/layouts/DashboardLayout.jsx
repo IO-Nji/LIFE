@@ -5,6 +5,8 @@ function DashboardLayout() {
   const { isAuthenticated, isAdmin, isPlantWarehouse, logout, session } = useAuth();
 
   const isModulesSupermarket = session?.user?.role === "MODULES_SUPERMARKET";
+  const isProductionControl = session?.user?.role === "PRODUCTION_CONTROL";
+  const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
 
   return (
     <div className="app-shell">
@@ -22,6 +24,8 @@ function DashboardLayout() {
             {isAuthenticated && <li><Link to="/products">Products</Link></li>}
             {isPlantWarehouse && <li><Link to="/warehouse">Warehouse</Link></li>}
             {isModulesSupermarket && <li><Link to="/modules-supermarket">Modules Supermarket</Link></li>}
+            {isProductionControl && <li><Link to="/production-control">🏭 Production Control</Link></li>}
+            {isAssemblyControl && <li><Link to="/assembly-control">⚙️ Assembly Control</Link></li>}
             {isAdmin && <li><Link to="/users">User Admin</Link></li>}
             {!isAuthenticated && <li><Link to="/login">Login</Link></li>}
             {isAuthenticated && (
@@ -42,4 +46,3 @@ function DashboardLayout() {
 }
 
 export default DashboardLayout;
-
