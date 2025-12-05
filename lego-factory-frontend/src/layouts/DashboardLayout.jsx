@@ -7,6 +7,7 @@ function DashboardLayout() {
   const isModulesSupermarket = session?.user?.role === "MODULES_SUPERMARKET";
   const isProductionControl = session?.user?.role === "PRODUCTION_CONTROL";
   const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
+  const isPartsSupplyWarehouse = session?.user?.role === "PARTS_SUPPLY_WAREHOUSE";
 
   return (
     <div className="app-shell">
@@ -26,6 +27,8 @@ function DashboardLayout() {
             {isModulesSupermarket && <li><Link to="/modules-supermarket">Modules Supermarket</Link></li>}
             {isProductionControl && <li><Link to="/production-control">🏭 Production Control</Link></li>}
             {isAssemblyControl && <li><Link to="/assembly-control">⚙️ Assembly Control</Link></li>}
+            {isPartsSupplyWarehouse && <li><Link to="/parts-supply-warehouse">📦 Parts Supply Warehouse</Link></li>}
+            {isAdmin && <li><Link to="/admin-dashboard">📊 Admin Dashboard</Link></li>}
             {isAdmin && <li><Link to="/users">User Admin</Link></li>}
             {!isAuthenticated && <li><Link to="/login">Login</Link></li>}
             {isAuthenticated && (

@@ -1,6 +1,8 @@
 package io.life.order.service;
 
 import io.life.order.dto.ProductionControlOrderDTO;
+import io.life.order.dto.SupplyOrderDTO;
+import io.life.order.dto.SupplyOrderItemDTO;
 import io.life.order.entity.ProductionControlOrder;
 import io.life.order.repository.ProductionControlOrderRepository;
 import org.slf4j.Logger;
@@ -24,9 +26,11 @@ public class ProductionControlOrderService {
     private static final Logger logger = LoggerFactory.getLogger(ProductionControlOrderService.class);
 
     private final ProductionControlOrderRepository repository;
+    private final SupplyOrderService supplyOrderService;
 
-    public ProductionControlOrderService(ProductionControlOrderRepository repository) {
+    public ProductionControlOrderService(ProductionControlOrderRepository repository, SupplyOrderService supplyOrderService) {
         this.repository = repository;
+        this.supplyOrderService = supplyOrderService;
     }
 
     /**
@@ -197,6 +201,30 @@ public class ProductionControlOrderService {
                 order.getControlOrderNumber(), defectsFound, defectsReworked);
 
         return mapToDTO(updated);
+    }
+
+    /**
+     * Request parts/supplies for this production control order.
+     * Creates a SupplyOrder that will be sent to the Parts Supply Warehouse.
+     */
+    public SupplyOrderDTO requestSupplies(
+            Long controlOrderId,
+            List<SupplyOrderItemDTO> requiredParts,
+            LocalDateTime neededBy,
+            String notes) {
+        
+        ProductionControlOrder order = repository.findById(controlOrderId)
+                .orElseThrow(() -> new RuntimeException("Control order not found: " + controlOrderId));
+
+        return supplyOrderService.createSupplyOrder(
+                controlOrderId,
+                "PRODUCTION",
+                order.getAssignedWorkstationId(),
+                order.getPriority(),
+                neededBy,
+                requiredParts,
+                notes
+        );
     }
 
     /**

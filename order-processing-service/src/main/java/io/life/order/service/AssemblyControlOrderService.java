@@ -1,6 +1,8 @@
 package io.life.order.service;
 
 import io.life.order.dto.AssemblyControlOrderDTO;
+import io.life.order.dto.SupplyOrderDTO;
+import io.life.order.dto.SupplyOrderItemDTO;
 import io.life.order.entity.AssemblyControlOrder;
 import io.life.order.repository.AssemblyControlOrderRepository;
 import org.slf4j.Logger;
@@ -24,9 +26,11 @@ public class AssemblyControlOrderService {
     private static final Logger logger = LoggerFactory.getLogger(AssemblyControlOrderService.class);
 
     private final AssemblyControlOrderRepository repository;
+    private final SupplyOrderService supplyOrderService;
 
-    public AssemblyControlOrderService(AssemblyControlOrderRepository repository) {
+    public AssemblyControlOrderService(AssemblyControlOrderRepository repository, SupplyOrderService supplyOrderService) {
         this.repository = repository;
+        this.supplyOrderService = supplyOrderService;
     }
 
     /**
@@ -212,6 +216,30 @@ public class AssemblyControlOrderService {
         AssemblyControlOrder updated = repository.save(order);
 
         return mapToDTO(updated);
+    }
+
+    /**
+     * Request parts/supplies for this assembly control order.
+     * Creates a SupplyOrder that will be sent to the Parts Supply Warehouse.
+     */
+    public SupplyOrderDTO requestSupplies(
+            Long controlOrderId,
+            List<SupplyOrderItemDTO> requiredParts,
+            LocalDateTime neededBy,
+            String notes) {
+        
+        AssemblyControlOrder order = repository.findById(controlOrderId)
+                .orElseThrow(() -> new RuntimeException("Control order not found: " + controlOrderId));
+
+        return supplyOrderService.createSupplyOrder(
+                controlOrderId,
+                "ASSEMBLY",
+                order.getAssignedWorkstationId(),
+                order.getPriority(),
+                neededBy,
+                requiredParts,
+                notes
+        );
     }
 
     /**

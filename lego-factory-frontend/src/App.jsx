@@ -3,11 +3,13 @@ import HomePage from "./pages/HomePage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import UserManagementPage from "./pages/UserManagementPage.jsx";
+import AdminDashboardPage from "./pages/AdminDashboardPage.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import PlantWarehousePage from "./pages/PlantWarehousePage.jsx";
 import ModulesSupermarketPage from "./pages/ModulesSupermarketPage.jsx";
 import ProductionControlPage from "./pages/ProductionControlPage.jsx";
 import AssemblyControlPage from "./pages/AssemblyControlPage.jsx";
+import PartsSupplyWarehousePage from "./pages/PartsSupplyWarehousePage.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -17,6 +19,7 @@ function App() {
   const isModulesSupermarket = session?.user?.role === "MODULES_SUPERMARKET";
   const isProductionControl = session?.user?.role === "PRODUCTION_CONTROL";
   const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
+  const isPartsSupplyWarehouse = session?.user?.role === "PARTS_SUPPLY_WAREHOUSE";
 
   return (
     <Routes>
@@ -25,6 +28,16 @@ function App() {
         <Route
           path="dashboard"
           element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="admin-dashboard"
+          element={
+            isAdmin ? (
+              <AdminDashboardPage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
         />
         <Route
           path="users"
@@ -75,6 +88,16 @@ function App() {
           element={
             isAssemblyControl ? (
               <AssemblyControlPage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="parts-supply-warehouse"
+          element={
+            isPartsSupplyWarehouse ? (
+              <PartsSupplyWarehousePage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
