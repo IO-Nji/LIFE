@@ -24,11 +24,14 @@ public class WarehouseOrderService {
 
     private final WarehouseOrderRepository warehouseOrderRepository;
     private final InventoryService inventoryService;
+    private final ProductionOrderService productionOrderService;
 
     public WarehouseOrderService(WarehouseOrderRepository warehouseOrderRepository,
-                                 InventoryService inventoryService) {
+                                 InventoryService inventoryService,
+                                 ProductionOrderService productionOrderService) {
         this.warehouseOrderRepository = warehouseOrderRepository;
         this.inventoryService = inventoryService;
+        this.productionOrderService = productionOrderService;
     }
 
     /**
@@ -80,6 +83,7 @@ public class WarehouseOrderService {
     /**
      * Fulfill a warehouse order (Modules Supermarket workflow)
      * Mark as fulfilled and update inventory at the requesting workstation
+     * If partial fulfillment, create a ProductionOrder for unfulfilled items (Scenario 3)
      */
     public WarehouseOrderDTO fulfillWarehouseOrder(Long warehouseOrderId) {
         Optional<WarehouseOrder> orderOpt = warehouseOrderRepository.findById(warehouseOrderId);
@@ -125,13 +129,46 @@ public class WarehouseOrderService {
             order.setStatus("FULFILLED");
             logger.info("Warehouse order {} fully fulfilled", order.getWarehouseOrderNumber());
         } else {
+            // Scenario 3: Partial fulfillment - Create ProductionOrder for unfulfilled items
             order.setStatus("PROCESSING");
             order.setNotes((order.getNotes() != null ? order.getNotes() + " | " : "") + "Partial fulfillment completed");
-            logger.info("Warehouse order {} partially fulfilled", order.getWarehouseOrderNumber());
+            logger.info("Warehouse order {} partially fulfilled - creating ProductionOrder", order.getWarehouseOrderNumber());
+
+            // Create ProductionOrder for unfulfilled items
+            try {
+                String priority = determinePriority(order);
+                productionOrderService.createProductionOrderFromWarehouse(
+                        order.getSourceCustomerOrderId(),
+                        warehouseOrderId,
+                        priority,
+                        order.getOrderDate().plusDays(7), // Due 7 days from order date
+                        "Created from warehouse order " + order.getWarehouseOrderNumber() + " - partial fulfillment",
+                        PLANT_WAREHOUSE_WORKSTATION_ID
+                );
+                logger.info("Created ProductionOrder for unfulfilled items from warehouse order {}", order.getWarehouseOrderNumber());
+            } catch (Exception e) {
+                logger.error("Failed to create ProductionOrder for warehouse order {}: {}", order.getWarehouseOrderNumber(), e.getMessage());
+            }
         }
 
         order.setUpdatedAt(LocalDateTime.now());
         return mapToDTO(warehouseOrderRepository.save(order));
+    }
+
+    /**
+     * Determine priority based on warehouse order urgency
+     */
+    private String determinePriority(WarehouseOrder order) {
+        LocalDateTime now = LocalDateTime.now();
+        long daysDifference = java.time.temporal.ChronoUnit.DAYS.between(now, order.getOrderDate());
+        
+        if (daysDifference < 1) {
+            return "HIGH";
+        } else if (daysDifference < 3) {
+            return "MEDIUM";
+        } else {
+            return "LOW";
+        }
     }
 
     /**

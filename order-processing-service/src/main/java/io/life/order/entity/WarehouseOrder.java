@@ -38,7 +38,7 @@ public class WarehouseOrder {
     private String status; // PENDING, PROCESSING, FULFILLED, REJECTED, CANCELLED
 
     // Items needed for this warehouse order (modules or parts)
-    @OneToMany(mappedBy = "warehouseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "warehouseOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<WarehouseOrderItem> warehouseOrderItems;
 
     // Fulfillment scenario that triggered this order

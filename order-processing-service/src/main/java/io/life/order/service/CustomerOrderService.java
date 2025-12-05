@@ -5,6 +5,8 @@ import io.life.order.dto.OrderItemDTO;
 import io.life.order.entity.CustomerOrder;
 import io.life.order.entity.OrderItem;
 import io.life.order.repository.CustomerOrderRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 public class CustomerOrderService {
 
+    private static final Logger logger = LoggerFactory.getLogger(CustomerOrderService.class);
     private final CustomerOrderRepository customerOrderRepository;
 
     public CustomerOrderService(CustomerOrderRepository customerOrderRepository) {
@@ -65,9 +68,17 @@ public class CustomerOrderService {
 
     @Transactional(readOnly = true)
     public List<CustomerOrderDTO> getOrdersByWorkstationId(Long workstationId) {
-        return customerOrderRepository.findByWorkstationId(workstationId).stream()
-            .map(this::mapToDTO)
-            .collect(Collectors.toList());
+        try {
+            logger.info("Fetching orders for workstation: {}", workstationId);
+            List<CustomerOrder> orders = customerOrderRepository.findByWorkstationId(workstationId);
+            logger.info("Found {} orders for workstation {}", orders.size(), workstationId);
+            return orders.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("Error fetching orders for workstation: {}", workstationId, e);
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -94,23 +105,28 @@ public class CustomerOrderService {
     }
 
     private CustomerOrderDTO mapToDTO(CustomerOrder order) {
-        CustomerOrderDTO dto = new CustomerOrderDTO();
-        dto.setId(order.getId());
-        dto.setOrderNumber(order.getOrderNumber());
-        dto.setOrderDate(order.getOrderDate());
-        dto.setStatus(order.getStatus());
-        dto.setWorkstationId(order.getWorkstationId());
-        dto.setNotes(order.getNotes());
-        dto.setCreatedAt(order.getCreatedAt());
-        dto.setUpdatedAt(order.getUpdatedAt());
+        try {
+            CustomerOrderDTO dto = new CustomerOrderDTO();
+            dto.setId(order.getId());
+            dto.setOrderNumber(order.getOrderNumber());
+            dto.setOrderDate(order.getOrderDate());
+            dto.setStatus(order.getStatus());
+            dto.setWorkstationId(order.getWorkstationId());
+            dto.setNotes(order.getNotes());
+            dto.setCreatedAt(order.getCreatedAt());
+            dto.setUpdatedAt(order.getUpdatedAt());
 
-        if (order.getOrderItems() != null) {
-            dto.setOrderItems(order.getOrderItems().stream()
-                .map(this::mapItemToDTO)
-                .collect(Collectors.toList()));
+            if (order.getOrderItems() != null) {
+                dto.setOrderItems(order.getOrderItems().stream()
+                    .map(this::mapItemToDTO)
+                    .collect(Collectors.toList()));
+            }
+
+            return dto;
+        } catch (Exception e) {
+            logger.error("Error mapping order to DTO: {}", order.getId(), e);
+            throw new RuntimeException("Error mapping order to DTO: " + e.getMessage(), e);
         }
-
-        return dto;
     }
 
     private OrderItemDTO mapItemToDTO(OrderItem item) {

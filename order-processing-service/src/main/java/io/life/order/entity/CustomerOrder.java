@@ -28,7 +28,7 @@ public class CustomerOrder {
     @Column(nullable = false)
     private String status; // PENDING, CONFIRMED, PROCESSING, COMPLETED, CANCELLED
 
-    @OneToMany(mappedBy = "customerOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "customerOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderItem> orderItems;
 
     @Column(nullable = false)

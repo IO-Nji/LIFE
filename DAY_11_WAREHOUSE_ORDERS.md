@@ -13,6 +13,7 @@ Day 11 implements the workflow for **Warehouse Orders** - orders created when Pl
 ### 11.1 Define `WarehouseOrder` Entity ✅
 
 **Files Created**:
+
 - `order-processing-service/src/main/java/io/life/order/entity/WarehouseOrder.java`
 - `order-processing-service/src/main/java/io/life/order/entity/WarehouseOrderItem.java`
 
@@ -56,9 +57,11 @@ public class WarehouseOrderItem {
 ### 11.2 Update Fulfillment Logic ✅
 
 **Files Modified**:
+
 - `order-processing-service/src/main/java/io/life/order/service/FulfillmentService.java`
 
 **Changes**:
+
 - Added `WarehouseOrderRepository` dependency
 - Updated constructor to inject repository
 - Added constant: `MODULES_SUPERMARKET_WORKSTATION_ID = 8L`
@@ -66,6 +69,7 @@ public class WarehouseOrderItem {
 - Enhanced `scenario3_ModulesSupermarket()` to create warehouse orders for unavailable items
 
 **Scenario 2 Logic** (No items available):
+
 ```java
 // Create WarehouseOrder with unique number (WO-XXXXXXXX)
 // Set requestingWorkstationId = 7 (Plant Warehouse)
@@ -76,6 +80,7 @@ public class WarehouseOrderItem {
 ```
 
 **Scenario 3 Logic** (Partial availability):
+
 ```java
 // Fulfill available items from local inventory
 // For unavailable items, create WarehouseOrder
@@ -87,6 +92,7 @@ public class WarehouseOrderItem {
 **Acceptance**: ✅ WarehouseOrder entities persisted when scenarios 2-3 trigger
 
 **Key Changes in Code**:
+
 ```java
 private CustomerOrderDTO scenario2_WarehouseOrder(CustomerOrder order) {
     WarehouseOrder warehouseOrder = new WarehouseOrder();
@@ -124,6 +130,7 @@ private CustomerOrderDTO scenario2_WarehouseOrder(CustomerOrder order) {
 ### 11.3 Build `WarehouseOrderController` ✅
 
 **Files Created**:
+
 - `order-processing-service/src/main/java/io/life/order/controller/WarehouseOrderController.java`
 - `order-processing-service/src/main/java/io/life/order/service/WarehouseOrderService.java`
 - `order-processing-service/src/main/java/io/life/order/repository/WarehouseOrderRepository.java`
@@ -177,6 +184,7 @@ PATCH /api/warehouse-orders/{id}/status
 ### 11.4 Create Modules Supermarket Dashboard ✅
 
 **Files Created**:
+
 - `lego-factory-frontend/src/pages/ModulesSupermarketPage.jsx`
 
 **Features**:
@@ -224,6 +232,7 @@ PATCH /api/warehouse-orders/{id}/status
 ### 11.5 Implement Fulfill Action UI ✅
 
 **Files Modified**:
+
 - `lego-factory-frontend/src/pages/ModulesSupermarketPage.jsx` (includes fulfillment UI)
 - `lego-factory-frontend/src/App.jsx` (added route protection)
 - `lego-factory-frontend/src/layouts/DashboardLayout.jsx` (added navigation link)
@@ -241,6 +250,7 @@ PATCH /api/warehouse-orders/{id}/status
 6. **Stock is updated** in Modules Supermarket inventory
 
 **Status Management**:
+
 - User can cancel incomplete orders with "Cancel" button
 - Sends: `PATCH /api/warehouse-orders/{id}/status?status=CANCELLED`
 - Updates order status in real-time
@@ -303,12 +313,14 @@ Plant Warehouse                    Modules Supermarket
 ## Technical Implementation Details
 
 ### Workstation IDs
+
 - **Workstation 7**: Plant Warehouse (requests items)
 - **Workstation 8**: Modules Supermarket (fulfills items)
 
 ### Status Lifecycle
 
 **WarehouseOrder Status**:
+
 - `PENDING` → Initial state after creation
 - `PROCESSING` → Being prepared for fulfillment
 - `FULFILLED` → All items fulfilled
@@ -316,6 +328,7 @@ Plant Warehouse                    Modules Supermarket
 - `CANCELLED` → Cancelled by operator
 
 **CustomerOrder Status**:
+
 - `PENDING` → Initial state
 - `CONFIRMED` → Confirmed for fulfillment
 - `PROCESSING` → Warehouse order created, awaiting fulfillment
@@ -325,6 +338,7 @@ Plant Warehouse                    Modules Supermarket
 ### Repository Methods
 
 **WarehouseOrderRepository**:
+
 ```java
 Optional<WarehouseOrder> findByWarehouseOrderNumber(String number)
 List<WarehouseOrder> findByFulfillingWorkstationId(Long id)
@@ -336,6 +350,7 @@ List<WarehouseOrder> findBySourceCustomerOrderId(Long id)
 ### Service Methods
 
 **WarehouseOrderService**:
+
 ```java
 List<WarehouseOrderDTO> getAllWarehouseOrders()
 Optional<WarehouseOrderDTO> getWarehouseOrderById(Long id)
@@ -390,11 +405,13 @@ WarehouseOrderDTO updateWarehouseOrderStatus(Long id, String status)
 ### Database Queries
 
 **View all warehouse orders**:
+
 ```sql
 SELECT * FROM warehouse_orders;
 ```
 
 **View warehouse order items**:
+
 ```sql
 SELECT wo.*, woi.* 
 FROM warehouse_orders wo 
@@ -402,6 +419,7 @@ LEFT JOIN warehouse_order_items woi ON wo.id = woi.warehouse_order_id;
 ```
 
 **Check order status flow**:
+
 ```sql
 SELECT id, order_number, status, notes, updated_at 
 FROM customer_orders 
@@ -483,9 +501,11 @@ LIMIT 10;
 ## Compilation & Build Status
 
 ✅ **Backend**: All services compile successfully
+
 - Order Processing Service: `mvnw clean compile -q` ✓
 
 ✅ **Frontend**: Build succeeds without errors
+
 - Vite build: `npm run build` ✓
 
 ---
@@ -513,12 +533,14 @@ LIMIT 10;
 ## Next Steps (Day 12)
 
 Day 12 will focus on **SimAL Integration Service Mock**, which will:
+
 - Create DTOs for production orders matching thesis JSON format
 - Implement mock endpoints for SimAL integration
 - Provide scheduled order storage and management
 - Set up foundation for Production Planning workflow
 
 This enables the Production Planning role to:
+
 - Receive production orders from Modules Supermarket (when they can't fulfill modules)
 - Schedule production in SimAL
 - Manage scheduled tasks and timelines

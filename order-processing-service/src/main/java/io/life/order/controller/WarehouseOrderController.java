@@ -3,7 +3,6 @@ package io.life.order.controller;
 import io.life.order.dto.WarehouseOrderDTO;
 import io.life.order.service.WarehouseOrderService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +22,6 @@ public class WarehouseOrderController {
      * GET /api/warehouse-orders
      * Retrieve all warehouse orders (admin only)
      */
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<WarehouseOrderDTO>> getAllWarehouseOrders() {
         List<WarehouseOrderDTO> orders = warehouseOrderService.getAllWarehouseOrders();
@@ -34,7 +32,6 @@ public class WarehouseOrderController {
      * GET /api/warehouse-orders/{id}
      * Retrieve a specific warehouse order by ID
      */
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MODULES_SUPERMARKET')")
     @GetMapping("/{id}")
     public ResponseEntity<WarehouseOrderDTO> getWarehouseOrderById(@PathVariable Long id) {
         Optional<WarehouseOrderDTO> order = warehouseOrderService.getWarehouseOrderById(id);
@@ -47,7 +44,6 @@ public class WarehouseOrderController {
      * Retrieve warehouse orders for a specific workstation
      * Modules Supermarket (8) can retrieve orders that need to be fulfilled
      */
-    @PreAuthorize("hasRole('MODULES_SUPERMARKET')")
     @GetMapping("/workstation/{workstationId}")
     public ResponseEntity<List<WarehouseOrderDTO>> getWarehouseOrdersByWorkstationId(@PathVariable Long workstationId) {
         List<WarehouseOrderDTO> orders = warehouseOrderService.getWarehouseOrdersByFulfillingWorkstationId(workstationId);
@@ -58,7 +54,6 @@ public class WarehouseOrderController {
      * GET /api/warehouse-orders/status/{status}
      * Retrieve warehouse orders by status
      */
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MODULES_SUPERMARKET')")
     @GetMapping("/status/{status}")
     public ResponseEntity<List<WarehouseOrderDTO>> getWarehouseOrdersByStatus(@PathVariable String status) {
         List<WarehouseOrderDTO> orders = warehouseOrderService.getWarehouseOrdersByStatus(status);
@@ -70,7 +65,6 @@ public class WarehouseOrderController {
      * Fulfill a warehouse order at Modules Supermarket
      * Updates warehouse order and related inventory
      */
-    @PreAuthorize("hasRole('MODULES_SUPERMARKET')")
     @PutMapping("/{id}/fulfill-modules")
     public ResponseEntity<WarehouseOrderDTO> fulfillWarehouseOrder(@PathVariable Long id) {
         WarehouseOrderDTO fulfilledOrder = warehouseOrderService.fulfillWarehouseOrder(id);
@@ -81,7 +75,6 @@ public class WarehouseOrderController {
      * PATCH /api/warehouse-orders/{id}/status
      * Update warehouse order status
      */
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MODULES_SUPERMARKET')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<WarehouseOrderDTO> updateWarehouseOrderStatus(
             @PathVariable Long id,
