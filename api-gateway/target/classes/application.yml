@@ -36,6 +36,10 @@ spring:
           uri: ${MASTERDATA_SERVICE_URI:http://localhost:8013}
           predicates:
             - Path=/api/masterdata/**
+        - id: inventory-service
+          uri: ${INVENTORY_SERVICE_URI:http://localhost:8084}
+          predicates:
+            - Path=/api/stock/**
 server:
   port: 8011
 

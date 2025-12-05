@@ -8,8 +8,7 @@
             "projectName": "user-service",
             "cwd": "${workspaceFolder}",
             "args": "",
-            "envFile": "${workspaceFolder}/.env",
-            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=57416 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=user-service"
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "type": "java",
@@ -29,8 +28,17 @@
             "projectName": "masterdata-service",
             "cwd": "${workspaceFolder}",
             "args": "",
-            "envFile": "${workspaceFolder}/.env",
-            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=49722 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=masterdata-service"
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "InventoryServiceApplication",
+            "request": "launch",
+            "mainClass": "io.life.inventory.InventoryServiceApplication",
+            "projectName": "inventory-service",
+            "cwd": "${workspaceFolder}",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "type": "java",
@@ -39,16 +47,6 @@
             "mainClass": "io.life.simal_integration_service.SimalIntegrationServiceApplication",
             "projectName": "simal-integration-service",
             "cwd": "${workspaceFolder}",
-            "args": "",
-            "envFile": "${workspaceFolder}/.env"
-        },
-        {
-            "type": "java",
-            "name": "Spring Boot-MasterdataServiceApplication<masterdata-service>",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "mainClass": "io.life.masterdata_service.MasterdataServiceApplication",
-            "projectName": "masterdata-service",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }

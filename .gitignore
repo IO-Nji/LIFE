@@ -9,3 +9,32 @@ DAY_5_COMPLETION_SUMMARY.md
 DAY_5_QUICKSTART.md
 DAY_5_VERIFICATION.md
 masterdata-service/src/main/resources/application.properties
+.cursor/mcp.json
+
+# Maven build artifacts
+**/target/
+**/target
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Node modules (Frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment files
+.env
+.env.local
+
+# Database files
+data/
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
