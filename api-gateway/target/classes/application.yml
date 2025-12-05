@@ -45,6 +45,10 @@ spring:
           uri: ${INVENTORY_SERVICE_URI:http://localhost:8014}
           predicates:
             - Path=/api/stock/**
+        - id: order-processing-service
+          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+          predicates:
+            - Path=/api/customer-orders/**
 server:
   port: 8011
 

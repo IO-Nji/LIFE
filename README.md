@@ -21,7 +21,12 @@ A microservice-based prototype that digitizes control flows for the LEGO Sample 
 - **inventory-service** (Spring Boot, port 8014)
   - Stock record management with workstation and item tracking.
   - REST endpoints for stock CRUD operations and workstation inventory queries.
-  - Backed by H2 file-based database (`data/inventory_service.db`).
+  - Backed by H2 file-based database (`data/inventory_db`).
+- **order-processing-service** (Spring Boot, port 8015)
+  - Customer order management with order items and fulfillment tracking.
+  - Order statuses: PENDING, CONFIRMED, PROCESSING, COMPLETED, CANCELLED.
+  - REST endpoints for order creation, status tracking, and workstation-scoped queries.
+  - Backed by H2 file-based database (`data/order_db`).
 - **lego-factory-frontend** (React + Vite)
   - Multi-page SPA with authentication, user management, and product catalog.
   - Dynamic user-workstation assignment UI for administrators.
@@ -66,6 +71,16 @@ A microservice-based prototype that digitizes control flows for the LEGO Sample 
 - `GET /api/stock/by-workstation/{workstationId}` — get all stock at a specific workstation.
 - `PUT /api/stock/update/{recordId}` — quick update endpoint for stock quantity changes.
 
+### Order-Processing-Service REST API (Port 8015, routed via `/api/customer-orders/**`)
+
+- `POST /api/customer-orders` — create new customer order with order items.
+- `GET /api/customer-orders/{id}` — fetch specific order by ID.
+- `GET /api/customer-orders/number/{orderNumber}` — fetch order by order number.
+- `GET /api/customer-orders/workstation/{workstationId}` — list orders for a workstation.
+- `GET /api/customer-orders/status/{status}` — list orders by status (PENDING, CONFIRMED, PROCESSING, COMPLETED, CANCELLED).
+- `PATCH /api/customer-orders/{id}/status` — update order status.
+- `DELETE /api/customer-orders/{id}` — delete order.
+
 ## Service Startup Order
 
 ### 1. **User Service** (Port 8012)
@@ -95,7 +110,16 @@ cd 'e:\My Documents\DEV\Java\Project\LIFE\inventory-service'
 .\mvnw spring-boot:run
 ```
 
-### 4. **API Gateway** (Port 8011)
+### 4. **Order Processing Service** (Port 8015)
+
+Manages customer orders and fulfillment. Must be ready before Gateway routes `/api/customer-orders/**` requests.
+
+```powershell
+cd 'e:\My Documents\DEV\Java\Project\LIFE\order-processing-service'
+.\mvnw spring-boot:run
+```
+
+### 5. **API Gateway** (Port 8011)
 
 Routes all frontend requests to downstream services. Requires all backend services to be running.
 
@@ -104,7 +128,7 @@ cd 'e:\My Documents\DEV\Java\Project\LIFE\api-gateway'
 .\mvnw spring-boot:run
 ```
 
-### 5. **Frontend** (Port 5173 or 5174)
+### 6. **Frontend** (Port 5173 or 5174)
 
 React development server. Communicates with Gateway at `http://localhost:8011`.
 
@@ -116,19 +140,21 @@ npm run dev
 ## Database Files
 
 Each service maintains its own H2 file-based database in the project root `data/` directory:
-- `data/user_service.db` — User accounts and authentication tokens.
-- `data/masterdata_service.db` — Products, modules, parts, and workstations.
-- `data/inventory_service.db` — Stock records and workstation inventory.
+- `data/user_db` — User accounts and authentication tokens.
+- `data/masterdata_db` — Products, modules, parts, and workstations.
+- `data/inventory_db` — Stock records and workstation inventory.
+- `data/order_db` — Customer orders and order items.
 
 **Note:** These files are automatically created on first run. To reset data, stop all services and delete the `data/` directory.
 
-## Recent Implementation (Day 7)
+## Recent Implementation (Day 8)
 
-- ✅ **Workstation Management**: Added Workstation entity, repository, service, and REST endpoints.
-- ✅ **User-Workstation Assignments**: Users can now be assigned to specific workstations for role-scoped operations.
-- ✅ **JWT Enhancement**: Tokens now include `workstationId` claim for context in production operations.
-- ✅ **Admin UI**: React component for creating users and managing role/workstation assignments.
-- ✅ **CORS Configuration**: Gateway properly handles preflight requests from frontend on ports 5173 and 5174.
+- ✅ **Order Processing Service**: Created port 8015 service for customer order management.
+- ✅ **Order Entities**: Implemented `CustomerOrder` and `OrderItem` entities with relationships.
+- ✅ **Order Repository & Service**: Full CRUD operations with workstation and status filtering.
+- ✅ **Order API Controller**: REST endpoints for order creation, retrieval, and status management.
+- ✅ **Gateway Integration**: Added route `/api/customer-orders/**` → `http://localhost:8015`.
+- ✅ **Service Builds**: All services compile and run successfully.
 
 ## Project Roadmap
 
