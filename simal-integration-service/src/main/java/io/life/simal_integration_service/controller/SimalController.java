@@ -3,6 +3,7 @@ package io.life.simal_integration_service.controller;
 import io.life.simal_integration_service.dto.SimalProductionOrderRequest;
 import io.life.simal_integration_service.dto.SimalScheduledOrderResponse;
 import io.life.simal_integration_service.dto.SimalUpdateTimeRequest;
+import io.life.simal_integration_service.service.ControlOrderIntegrationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,11 @@ public class SimalController {
     // In-memory storage for scheduled orders
     private final Map<String, SimalScheduledOrderResponse> scheduledOrders = new HashMap<>();
     private final DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_DATE_TIME;
+    private final ControlOrderIntegrationService controlOrderIntegrationService;
+
+    public SimalController(ControlOrderIntegrationService controlOrderIntegrationService) {
+        this.controlOrderIntegrationService = controlOrderIntegrationService;
+    }
 
     /**
      * Mock endpoint to submit a production order for scheduling.
@@ -271,4 +277,137 @@ public class SimalController {
             order.setStatus("SCHEDULED");
         }
     }
+
+    /**
+     * Create control orders from a scheduled order.
+     * Processes the SimAL schedule and generates ProductionControlOrder and AssemblyControlOrder
+     * entities in the order-processing-service.
+     *
+     * @param scheduleId The SimAL schedule ID
+     * @param productionOrderId The production order ID in order-processing-service
+     * @return Map of created control order numbers by workstation
+     */
+    @PostMapping("/scheduled-orders/{scheduleId}/create-control-orders")
+    public ResponseEntity<Map<String, Object>> createControlOrders(
+            @PathVariable String scheduleId,
+            @RequestParam(required = false) Long productionOrderId) {
+
+        System.out.println("Creating control orders from schedule: " + scheduleId);
+
+        SimalScheduledOrderResponse schedule = scheduledOrders.get(scheduleId);
+        if (schedule == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (productionOrderId == null) {
+            productionOrderId = 1L; // Default for testing
+        }
+
+        try {
+            Map<String, String> createdOrders = controlOrderIntegrationService
+                    .createControlOrdersFromSchedule(schedule, productionOrderId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("scheduleId", scheduleId);
+            response.put("productionOrderId", productionOrderId);
+            response.put("controlOrdersCreated", createdOrders);
+            response.put("totalControlOrders", createdOrders.size());
+            response.put("status", "SUCCESS");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            System.err.println("Error creating control orders: " + e.getMessage());
+            e.printStackTrace();
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "ERROR");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Batch create control orders for multiple schedules.
+     * Useful for processing multiple production orders in one operation.
+     *
+     * @param request Batch request with list of schedule IDs and production order IDs
+     * @return Results of all control order creations
+     */
+    @PostMapping("/create-control-orders/batch")
+    public ResponseEntity<Map<String, Object>> createControlOrdersBatch(
+            @RequestBody BatchControlOrderRequest request) {
+
+        System.out.println("Creating control orders for batch: " + request.getScheduleIds().size() + " schedules");
+
+        List<Map<String, Object>> results = new ArrayList<>();
+        int successCount = 0;
+        int failureCount = 0;
+
+        for (int i = 0; i < request.getScheduleIds().size(); i++) {
+            String scheduleId = request.getScheduleIds().get(i);
+            Long productionOrderId = i < request.getProductionOrderIds().size() ?
+                    request.getProductionOrderIds().get(i) : (long)(i + 1);
+
+            SimalScheduledOrderResponse schedule = scheduledOrders.get(scheduleId);
+            if (schedule == null) {
+                failureCount++;
+                results.add(Map.of("scheduleId", scheduleId, "status", "NOT_FOUND"));
+                continue;
+            }
+
+            try {
+                Map<String, String> createdOrders = controlOrderIntegrationService
+                        .createControlOrdersFromSchedule(schedule, productionOrderId);
+
+                successCount++;
+                results.add(Map.of(
+                        "scheduleId", scheduleId,
+                        "productionOrderId", productionOrderId,
+                        "controlOrders", createdOrders,
+                        "status", "SUCCESS"
+                ));
+            } catch (Exception e) {
+                failureCount++;
+                results.add(Map.of(
+                        "scheduleId", scheduleId,
+                        "status", "ERROR",
+                        "message", e.getMessage()
+                ));
+            }
+        }
+
+        Map<String, Object> batchResponse = new HashMap<>();
+        batchResponse.put("totalRequests", request.getScheduleIds().size());
+        batchResponse.put("successCount", successCount);
+        batchResponse.put("failureCount", failureCount);
+        batchResponse.put("results", results);
+
+        return ResponseEntity.ok(batchResponse);
+    }
+
+    /**
+     * DTO for batch control order creation request.
+     */
+    public static class BatchControlOrderRequest {
+        public List<String> scheduleIds;
+        public List<Long> productionOrderIds;
+
+        public List<String> getScheduleIds() {
+            return scheduleIds;
+        }
+
+        public void setScheduleIds(List<String> scheduleIds) {
+            this.scheduleIds = scheduleIds;
+        }
+
+        public List<Long> getProductionOrderIds() {
+            return productionOrderIds;
+        }
+
+        public void setProductionOrderIds(List<Long> productionOrderIds) {
+            this.productionOrderIds = productionOrderIds;
+        }
+    }
 }
+

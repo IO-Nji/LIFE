@@ -61,6 +61,14 @@ spring:
           uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
           predicates:
             - Path=/api/production-planning/**
+        - id: order-processing-service-production-control
+          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+          predicates:
+            - Path=/api/production-control-orders/**
+        - id: order-processing-service-assembly-control
+          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+          predicates:
+            - Path=/api/assembly-control-orders/**
         - id: simal-integration-service
           uri: ${SIMAL_INTEGRATION_SERVICE_URI:http://localhost:8016}
           predicates:

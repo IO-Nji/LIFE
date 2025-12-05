@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -187,5 +189,85 @@ public class ProductionControlOrderController {
 
         public Boolean getReworkRequired() { return reworkRequired; }
         public void setReworkRequired(Boolean reworkRequired) { this.reworkRequired = reworkRequired; }
+    }
+
+    /**
+     * Create a production control order from SimAL schedule data.
+     * This endpoint is called by the SimAL integration service when a production
+     * order has been scheduled and assigned to a production workstation.
+     */
+    @PostMapping
+    public ResponseEntity<ProductionControlOrderDTO> createControlOrder(
+            @RequestBody CreateControlOrderRequest request) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+            LocalDateTime targetStart = LocalDateTime.parse(request.getTargetStartTime(), formatter);
+            LocalDateTime targetCompletion = LocalDateTime.parse(request.getTargetCompletionTime(), formatter);
+
+            ProductionControlOrderDTO order = productionControlOrderService.createControlOrder(
+                    request.getSourceProductionOrderId(),
+                    request.getAssignedWorkstationId(),
+                    request.getSimalScheduleId(),
+                    request.getPriority(),
+                    targetStart,
+                    targetCompletion,
+                    request.getProductionInstructions(),
+                    request.getQualityCheckpoints(),
+                    "Standard safety procedures apply",
+                    120  // Default 2-hour estimate
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(order);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Request class for creating a production control order from SimAL
+     */
+    public static class CreateControlOrderRequest {
+        private Long sourceProductionOrderId;
+        private Long assignedWorkstationId;
+        private String simalScheduleId;
+        private String targetStartTime;
+        private String targetCompletionTime;
+        private String priority;
+        private String productionInstructions;
+        private String qualityCheckpoints;
+
+        // Getters and setters
+        public Long getSourceProductionOrderId() { return sourceProductionOrderId; }
+        public void setSourceProductionOrderId(Long sourceProductionOrderId) {
+            this.sourceProductionOrderId = sourceProductionOrderId;
+        }
+
+        public Long getAssignedWorkstationId() { return assignedWorkstationId; }
+        public void setAssignedWorkstationId(Long assignedWorkstationId) {
+            this.assignedWorkstationId = assignedWorkstationId;
+        }
+
+        public String getSimalScheduleId() { return simalScheduleId; }
+        public void setSimalScheduleId(String simalScheduleId) { this.simalScheduleId = simalScheduleId; }
+
+        public String getTargetStartTime() { return targetStartTime; }
+        public void setTargetStartTime(String targetStartTime) { this.targetStartTime = targetStartTime; }
+
+        public String getTargetCompletionTime() { return targetCompletionTime; }
+        public void setTargetCompletionTime(String targetCompletionTime) {
+            this.targetCompletionTime = targetCompletionTime;
+        }
+
+        public String getPriority() { return priority; }
+        public void setPriority(String priority) { this.priority = priority; }
+
+        public String getProductionInstructions() { return productionInstructions; }
+        public void setProductionInstructions(String productionInstructions) {
+            this.productionInstructions = productionInstructions;
+        }
+
+        public String getQualityCheckpoints() { return qualityCheckpoints; }
+        public void setQualityCheckpoints(String qualityCheckpoints) {
+            this.qualityCheckpoints = qualityCheckpoints;
+        }
     }
 }
