@@ -2,6 +2,7 @@ package io.life.order.controller;
 
 import io.life.order.dto.CustomerOrderDTO;
 import io.life.order.service.CustomerOrderService;
+import io.life.order.service.FulfillmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,9 +16,11 @@ import java.util.Optional;
 public class CustomerOrderController {
 
     private final CustomerOrderService customerOrderService;
+    private final FulfillmentService fulfillmentService;
 
-    public CustomerOrderController(CustomerOrderService customerOrderService) {
+    public CustomerOrderController(CustomerOrderService customerOrderService, FulfillmentService fulfillmentService) {
         this.customerOrderService = customerOrderService;
+        this.fulfillmentService = fulfillmentService;
     }
 
     @PreAuthorize("hasRole('PLANT_WAREHOUSE')")
@@ -71,5 +74,12 @@ public class CustomerOrderController {
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         customerOrderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('PLANT_WAREHOUSE')")
+    @PutMapping("/{id}/fulfill")
+    public ResponseEntity<CustomerOrderDTO> fulfillOrder(@PathVariable Long id) {
+        CustomerOrderDTO fulfilledOrder = fulfillmentService.fulfillOrder(id);
+        return ResponseEntity.ok(fulfilledOrder);
     }
 }

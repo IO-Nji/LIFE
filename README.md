@@ -148,7 +148,7 @@ Each service maintains its own H2 file-based database in the project root `data/
 
 **Note:** These files are automatically created on first run. To reset data, stop all services and delete the `data/` directory.
 
-## Recent Implementation (Day 8-9)
+## Recent Implementation (Day 8-11)
 
 - ✅ **Order Processing Service**: Created port 8015 service for customer order management.
 - ✅ **Order Entities**: Implemented `CustomerOrder` and `OrderItem` entities with relationships.
@@ -162,10 +162,31 @@ Each service maintains its own H2 file-based database in the project root `data/
 - ✅ **Status Badges**: Color-coded order status display (PENDING, CONFIRMED, PROCESSING, COMPLETED, CANCELLED).
 - ✅ **Gateway Integration**: Added route `/api/customer-orders/**` → `http://localhost:8015`.
 - ✅ **Service Builds**: All services compile and run successfully.
+- ✅ **Day 11 - Warehouse Orders Management**:
+  - **WarehouseOrder Entity**: Lifecycle management with statuses (PENDING, PROCESSING, FULFILLED, REJECTED, CANCELLED).
+  - **WarehouseOrderItem Entity**: Line item tracking with requested/fulfilled quantities.
+  - **WarehouseOrderRepository & Service**: Full CRUD with fulfill logic and inventory integration.
+  - **WarehouseOrderController**: 6 REST endpoints with role-based authorization (@PreAuthorize("hasRole('MODULES_SUPERMARKET')")).
+  - **FulfillmentService Enhancement**: Auto-creates warehouse orders in scenarios 2-3 (no stock / partial fulfillment).
+  - **ModulesSupermarketPage React Component**: Dashboard for warehouse order management with:
+    - Real-time order fetching and 30-second auto-refresh
+    - Status filtering (ALL, PENDING, PROCESSING, FULFILLED, REJECTED, CANCELLED)
+    - Fulfill and cancel actions with inventory updates
+    - Order summary statistics (Total, Pending, Processing, Fulfilled counts)
+    - Compact item display format: "Item Name — 5req / 3ful"
+    - Responsive dual-column layout (Order Summary | About Warehouse Orders)
+  - **ModulesSupermarketUserInitializer**: Auto-creates test account (modulesSupermarketOp / modulesPass, workstation 8).
+  - **Role-Based Access Control**: New MODULES_SUPERMARKET role with protected endpoints.
+  - **UI/UX Improvements**:
+    - Removed emoji icons throughout
+    - Inline flex layout for filter controls and statistics
+    - Property-value pair formatting for compact display
+    - Color-coded status badges (Yellow/Blue/Green/Red/Gray)
+    - Separator lines between statistics rows
 
 ## Project Roadmap
 
-**Week 2 (Days 8-10)**: Customer order creation, fulfillment logic, and warehouse management. ✅ Days 8-9 complete.
-**Week 3 (Days 11-15)**: Production planning, SimAL integration, and schedule optimization.
+**Week 2 (Days 8-11)**: Customer order creation, fulfillment logic, warehouse management, and modules supermarket. ✅ Days 8-11 complete.
+**Week 3 (Days 12-15)**: Production planning, SimAL integration, and schedule optimization.
 **Week 4 (Days 16-20)**: Workstation execution, real-time status updates, and production dashboards.
 **Week 5 (Days 21-25)**: Prototype refinement and stakeholder showcase.

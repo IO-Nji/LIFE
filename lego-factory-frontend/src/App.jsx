@@ -5,11 +5,14 @@ import LoginPage from "./pages/LoginPage.jsx";
 import UserManagementPage from "./pages/UserManagementPage.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import PlantWarehousePage from "./pages/PlantWarehousePage.jsx";
+import ModulesSupermarketPage from "./pages/ModulesSupermarketPage.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 function App() {
-  const { isAuthenticated, isAdmin, isPlantWarehouse } = useAuth();
+  const { isAuthenticated, isAdmin, isPlantWarehouse, session } = useAuth();
+
+  const isModulesSupermarket = session?.user?.role === "MODULES_SUPERMARKET";
 
   return (
     <Routes>
@@ -38,6 +41,16 @@ function App() {
           element={
             isPlantWarehouse ? (
               <PlantWarehousePage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="modules-supermarket"
+          element={
+            isModulesSupermarket ? (
+              <ModulesSupermarketPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )

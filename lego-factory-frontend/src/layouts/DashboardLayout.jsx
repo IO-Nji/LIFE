@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext.jsx";
 function DashboardLayout() {
   const { isAuthenticated, isAdmin, isPlantWarehouse, logout, session } = useAuth();
 
+  const isModulesSupermarket = session?.user?.role === "MODULES_SUPERMARKET";
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -19,6 +21,7 @@ function DashboardLayout() {
             <li><Link to="/dashboard">Dashboard</Link></li>
             {isAuthenticated && <li><Link to="/products">Products</Link></li>}
             {isPlantWarehouse && <li><Link to="/warehouse">Warehouse</Link></li>}
+            {isModulesSupermarket && <li><Link to="/modules-supermarket">Modules Supermarket</Link></li>}
             {isAdmin && <li><Link to="/users">User Admin</Link></li>}
             {!isAuthenticated && <li><Link to="/login">Login</Link></li>}
             {isAuthenticated && (
@@ -39,3 +42,4 @@ function DashboardLayout() {
 }
 
 export default DashboardLayout;
+
