@@ -22,6 +22,7 @@ function App() {
   const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
   const isPartsSupplyWarehouse = session?.user?.role === "PARTS_SUPPLY_WAREHOUSE";
   const isManufacturingWorkstation = session?.user?.role === "MANUFACTURING_WORKSTATION";
+  const isAssemblyWorkstation = session?.user?.role === "ASSEMBLY_WORKSTATION";
 
   return (
     <Routes>
@@ -109,6 +110,16 @@ function App() {
           path="manufacturing/:workstationType"
           element={
             isManufacturingWorkstation ? (
+              <ManufacturingWorkstationPage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="assembly/:workstationType"
+          element={
+            isAssemblyWorkstation ? (
               <ManufacturingWorkstationPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />

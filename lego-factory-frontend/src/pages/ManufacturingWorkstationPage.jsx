@@ -5,12 +5,13 @@ import axios from "axios";
 import "../styles/ControlPages.css";
 
 /**
- * Generic Manufacturing Workstation Page
- * Used for: Injection Molding, Parts Pre-Production, Part Finishing
- * Displays manufacturing tasks and allows operators to complete them.
+ * Generic Workstation Page - Used for both Manufacturing and Assembly
+ * Manufacturing: Injection Molding, Parts Pre-Production, Part Finishing
+ * Assembly: Gear Assembly, Motor Assembly, Final Assembly
+ * Displays tasks and allows operators to complete them.
  */
 function ManufacturingWorkstationPage() {
-  const { workstationType } = useParams(); // injection-molding, parts-pre-production, part-finishing
+  const { workstationType } = useParams(); // injection-molding, parts-pre-production, part-finishing, gear-assembly, motor-assembly, final-assembly
   const { session } = useAuth();
   const [controlOrders, setControlOrders] = useState([]);
   const [activeOrders, setActiveOrders] = useState([]);
@@ -23,21 +24,44 @@ function ManufacturingWorkstationPage() {
 
   const workstationId = session?.user?.workstationId;
 
-  // Map workstation types to API endpoints
-  const apiEndpointMap = {
+  // Map manufacturing workstation types to API endpoints
+  const manufacturingEndpoints = {
     "injection-molding": "/api/manufacturing/injection-molding",
     "parts-pre-production": "/api/manufacturing/parts-pre-production",
     "part-finishing": "/api/manufacturing/part-finishing",
   };
 
-  const stationTitles = {
+  // Map assembly workstation types to API endpoints
+  const assemblyEndpoints = {
+    "gear-assembly": "/api/assembly/gear-assembly",
+    "motor-assembly": "/api/assembly/motor-assembly",
+    "final-assembly": "/api/assembly/final-assembly",
+  };
+
+  // Combine all endpoints
+  const apiEndpointMap = { ...manufacturingEndpoints, ...assemblyEndpoints };
+
+  // Manufacturing station titles
+  const manufacturingTitles = {
     "injection-molding": "🏭 Injection Molding Station",
     "parts-pre-production": "⚙️ Parts Pre-Production Station",
     "part-finishing": "✨ Part Finishing Station",
   };
 
+  // Assembly station titles
+  const assemblyTitles = {
+    "gear-assembly": "⚙️ Gear Assembly Station",
+    "motor-assembly": "🔌 Motor Assembly Station",
+    "final-assembly": "📦 Final Assembly Station",
+  };
+
+  // Combine all titles
+  const stationTitles = { ...manufacturingTitles, ...assemblyTitles };
+
   const apiEndpoint = apiEndpointMap[workstationType] || "/api/manufacturing/injection-molding";
-  const stationTitle = stationTitles[workstationType] || "Manufacturing Station";
+  const stationTitle = stationTitles[workstationType] || "Workstation";
+  const isAssembly = Object.keys(assemblyTitles).includes(workstationType);
+  const taskType = isAssembly ? "assembly" : "manufacturing";
 
   useEffect(() => {
     if (workstationId) {
@@ -65,11 +89,11 @@ function ManufacturingWorkstationPage() {
       setActiveOrders(active);
 
       if (orders.length === 0) {
-        setSuccessMessage("No manufacturing tasks assigned yet");
+        setSuccessMessage(`No ${taskType} tasks assigned yet`);
       }
     } catch (err) {
       setError(
-        "Failed to load manufacturing tasks: " +
+        `Failed to load ${taskType} tasks: ` +
           (err.response?.data?.message || err.message)
       );
     } finally {
@@ -86,10 +110,10 @@ function ManufacturingWorkstationPage() {
       );
       setSelectedOrder(response.data);
       await fetchControlOrders();
-      setSuccessMessage("Manufacturing task started successfully!");
+      setSuccessMessage(`${taskType.charAt(0).toUpperCase() + taskType.slice(1)} task started successfully!`);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      setError("Failed to start manufacturing: " + (err.response?.data?.message || err.message));
+      setError(`Failed to start ${taskType}: ` + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }
@@ -119,11 +143,11 @@ function ManufacturingWorkstationPage() {
   };
 
   const completeProduction = async (orderId) => {
-    if (
-      !window.confirm(
-        "Are you sure the manufacturing task is complete and quality checks have passed?"
-      )
-    ) {
+    const message = isAssembly 
+      ? "Are you sure the assembly task is complete and quality checks have passed?"
+      : "Are you sure the manufacturing task is complete and quality checks have passed?";
+    
+    if (!window.confirm(message)) {
       return;
     }
 
@@ -136,11 +160,14 @@ function ManufacturingWorkstationPage() {
       setSelectedOrder(null);
       setOperatorNotes("");
       await fetchControlOrders();
-      setSuccessMessage("Manufacturing task completed successfully! Modules Supermarket has been credited.");
+      const creditMsg = isAssembly && workstationType === "final-assembly"
+        ? "Plant Warehouse has been credited with a finished product."
+        : "Modules Supermarket has been credited with a module unit.";
+      setSuccessMessage(`${taskType.charAt(0).toUpperCase() + taskType.slice(1)} task completed successfully! ${creditMsg}`);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       setError(
-        "Failed to complete manufacturing task: " +
+        `Failed to complete ${taskType} task: ` +
           (err.response?.data?.message || err.message)
       );
     } finally {
@@ -149,7 +176,7 @@ function ManufacturingWorkstationPage() {
   };
 
   const haltProduction = async (orderId) => {
-    const reason = prompt("Enter reason for halting manufacturing:");
+    const reason = prompt(`Enter reason for halting ${taskType}:`);
     if (!reason) return;
 
     try {
@@ -162,11 +189,11 @@ function ManufacturingWorkstationPage() {
       setOperatorNotes("");
       await fetchControlOrders();
       setError(null);
-      setSuccessMessage("Manufacturing task halted and logged");
+      setSuccessMessage(`${taskType.charAt(0).toUpperCase() + taskType.slice(1)} task halted and logged`);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       setError(
-        "Failed to halt manufacturing: " +
+        `Failed to halt ${taskType}: ` +
           (err.response?.data?.message || err.message)
       );
     } finally {

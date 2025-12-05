@@ -7,11 +7,15 @@ import io.life.order.entity.AssemblyControlOrder;
 import io.life.order.repository.AssemblyControlOrderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -27,10 +31,26 @@ public class AssemblyControlOrderService {
 
     private final AssemblyControlOrderRepository repository;
     private final SupplyOrderService supplyOrderService;
+    private final RestTemplate restTemplate;
+    private final InventoryService inventoryService;
 
-    public AssemblyControlOrderService(AssemblyControlOrderRepository repository, SupplyOrderService supplyOrderService) {
+    @Value("${simal.service.url:http://localhost:8018}")
+    private String simalServiceUrl;
+
+    @Value("${modules.supermarket.workstation.id:8}")
+    private Long modulesSupermarketWorkstationId;
+
+    @Value("${plant.warehouse.workstation.id:7}")
+    private Long plantWarehouseWorkstationId;
+
+    public AssemblyControlOrderService(AssemblyControlOrderRepository repository, 
+                                      SupplyOrderService supplyOrderService,
+                                      RestTemplate restTemplate,
+                                      InventoryService inventoryService) {
         this.repository = repository;
         this.supplyOrderService = supplyOrderService;
+        this.restTemplate = restTemplate;
+        this.inventoryService = inventoryService;
     }
 
     /**
@@ -159,17 +179,114 @@ public class AssemblyControlOrderService {
     }
 
     /**
-     * Halt assembly on a control order.
+     * Complete assembly production with SimAL and Modules Supermarket inventory integration.
+     * Used for Gear Assembly and Motor Assembly workstations.
+     * Credits Modules Supermarket (WS-8) with one module unit.
      */
-    public AssemblyControlOrderDTO haltAssembly(Long id, String reason) {
+    public AssemblyControlOrderDTO completeAssemblyProduction(Long id) {
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
-        order.setStatus("HALTED");
-        order.setOperatorNotes("Halted: " + reason);
+        if (!"IN_PROGRESS".equals(order.getStatus())) {
+            throw new IllegalStateException("Cannot complete - order status is " + order.getStatus());
+        }
+
+        // Step 1: Update control order status and timestamps
+        order.setStatus("COMPLETED");
+        order.setActualCompletionTime(LocalDateTime.now());
+        
+        if (order.getActualStartTime() != null) {
+            long minutes = java.time.temporal.ChronoUnit.MINUTES.between(
+                    order.getActualStartTime(),
+                    order.getActualCompletionTime()
+            );
+            order.setActualDurationMinutes((int) minutes);
+        }
 
         AssemblyControlOrder updated = repository.save(order);
-        logger.warn("Halted assembly on control order {}: {}", order.getControlOrderNumber(), reason);
+        logger.info("Completed assembly production on control order {}", order.getControlOrderNumber());
+
+        // Step 2: Call SimAL to update schedule status (fire-and-forget)
+        try {
+            updateSimalScheduleStatus(order.getSimalScheduleId(), "COMPLETED");
+        } catch (Exception e) {
+            logger.warn("Failed to update SimAL schedule status for {}: {}", order.getSimalScheduleId(), e.getMessage());
+            // Don't throw - completion already succeeded, SimAL update is secondary
+        }
+
+        // Step 3: Credit Modules Supermarket inventory (fire-and-forget)
+        try {
+            creditModulesSupermarket(order.getSourceProductionOrderId(), 1);
+        } catch (Exception e) {
+            logger.warn("Failed to credit Modules Supermarket for order {}: {}", order.getSourceProductionOrderId(), e.getMessage());
+            // Don't throw - completion already succeeded, inventory update is secondary
+        }
+
+        return mapToDTO(updated);
+    }
+
+    /**
+     * Complete final assembly with SimAL and Plant Warehouse inventory integration.
+     * Used only for Final Assembly workstations.
+     * Credits Plant Warehouse (WS-7) with one finished product unit instead of Modules Supermarket.
+     * This represents the completion of the entire product ready for shipping.
+     */
+    public AssemblyControlOrderDTO completeFinalAssembly(Long id) {
+        AssemblyControlOrder order = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
+
+        if (!"IN_PROGRESS".equals(order.getStatus())) {
+            throw new IllegalStateException("Cannot complete - order status is " + order.getStatus());
+        }
+
+        // Step 1: Update control order status and timestamps
+        order.setStatus("COMPLETED");
+        order.setActualCompletionTime(LocalDateTime.now());
+        
+        if (order.getActualStartTime() != null) {
+            long minutes = java.time.temporal.ChronoUnit.MINUTES.between(
+                    order.getActualStartTime(),
+                    order.getActualCompletionTime()
+            );
+            order.setActualDurationMinutes((int) minutes);
+        }
+
+        AssemblyControlOrder updated = repository.save(order);
+        logger.info("Completed final assembly on control order {}", order.getControlOrderNumber());
+
+        // Step 2: Call SimAL to update schedule status (fire-and-forget)
+        try {
+            updateSimalScheduleStatus(order.getSimalScheduleId(), "COMPLETED");
+        } catch (Exception e) {
+            logger.warn("Failed to update SimAL schedule status for {}: {}", order.getSimalScheduleId(), e.getMessage());
+            // Don't throw - completion already succeeded, SimAL update is secondary
+        }
+
+        // Step 3: Credit Plant Warehouse inventory (fire-and-forget) - FINAL ASSEMBLY ONLY
+        try {
+            creditPlantWarehouse(order.getSourceProductionOrderId(), 1);
+        } catch (Exception e) {
+            logger.warn("Failed to credit Plant Warehouse for order {}: {}", order.getSourceProductionOrderId(), e.getMessage());
+            // Don't throw - completion already succeeded, inventory update is secondary
+        }
+
+        return mapToDTO(updated);
+    }
+
+    /**
+     * Halt assembly on a control order.
+     */
+    public AssemblyControlOrderDTO haltAssembly(Long id) {
+        AssemblyControlOrder order = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
+
+        if (!"IN_PROGRESS".equals(order.getStatus())) {
+            throw new IllegalStateException("Cannot halt - order status is " + order.getStatus());
+        }
+
+        order.setStatus("HALTED");
+        AssemblyControlOrder updated = repository.save(order);
+        logger.warn("Halted assembly on control order {}", order.getControlOrderNumber());
 
         return mapToDTO(updated);
     }
@@ -283,4 +400,52 @@ public class AssemblyControlOrderService {
                 .completedAt(order.getCompletedAt())
                 .build();
     }
+
+    /**
+     * Update SimAL schedule status via SimAL Integration Service.
+     */
+    private void updateSimalScheduleStatus(String scheduleId, String status) {
+        try {
+            String url = simalServiceUrl + "/api/simal/scheduled-orders/" + scheduleId + "/status";
+            Map<String, Object> request = new HashMap<>();
+            request.put("status", status);
+            request.put("completedAt", LocalDateTime.now().toString());
+            
+            restTemplate.postForObject(url, request, String.class);
+            logger.info("Updated SimAL schedule {} status to {}", scheduleId, status);
+        } catch (Exception e) {
+            logger.error("Failed to update SimAL schedule status for {}", scheduleId, e);
+            throw new RuntimeException("SimAL update failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Credit Modules Supermarket inventory when assembly completes.
+     * Awards one module unit to Modules Supermarket (workstation 8).
+     */
+    private void creditModulesSupermarket(Long productionOrderId, Integer quantity) {
+        try {
+            inventoryService.updateStock(modulesSupermarketWorkstationId, 1L, quantity);
+            logger.info("Credited Modules Supermarket with {} units for production order {}", quantity, productionOrderId);
+        } catch (Exception e) {
+            logger.error("Failed to credit Modules Supermarket for production order {}", productionOrderId, e);
+            throw new RuntimeException("Inventory credit failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Credit Plant Warehouse inventory when final assembly completes.
+     * Awards one finished product unit to Plant Warehouse (workstation 7).
+     * Only used for Final Assembly workstations.
+     */
+    private void creditPlantWarehouse(Long productionOrderId, Integer quantity) {
+        try {
+            inventoryService.updateStock(plantWarehouseWorkstationId, 1L, quantity);
+            logger.info("Credited Plant Warehouse with {} finished units for production order {}", quantity, productionOrderId);
+        } catch (Exception e) {
+            logger.error("Failed to credit Plant Warehouse for production order {}", productionOrderId, e);
+            throw new RuntimeException("Inventory credit failed: " + e.getMessage(), e);
+        }
+    }
 }
+

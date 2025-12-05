@@ -9,6 +9,7 @@ function DashboardLayout() {
   const isAssemblyControl = session?.user?.role === "ASSEMBLY_CONTROL";
   const isPartsSupplyWarehouse = session?.user?.role === "PARTS_SUPPLY_WAREHOUSE";
   const isManufacturingWorkstation = session?.user?.role === "MANUFACTURING_WORKSTATION";
+  const isAssemblyWorkstation = session?.user?.role === "ASSEMBLY_WORKSTATION";
 
   // Determine which manufacturing station to display based on workstation type
   const getManufacturingWorkstationType = () => {
@@ -17,6 +18,15 @@ function DashboardLayout() {
     if (workstationName.includes("Pre-Production")) return "parts-pre-production";
     if (workstationName.includes("Finishing")) return "part-finishing";
     return "injection-molding"; // default
+  };
+
+  // Determine which assembly station to display based on workstation type
+  const getAssemblyWorkstationType = () => {
+    const workstationName = session?.user?.workstationName || "";
+    if (workstationName.includes("Gear")) return "gear-assembly";
+    if (workstationName.includes("Motor")) return "motor-assembly";
+    if (workstationName.includes("Final")) return "final-assembly";
+    return "gear-assembly"; // default
   };
 
   return (
@@ -37,6 +47,7 @@ function DashboardLayout() {
             {isModulesSupermarket && <li><Link to="/modules-supermarket">Modules Supermarket</Link></li>}
             {isProductionControl && <li><Link to="/production-control">🏭 Production Control</Link></li>}
             {isAssemblyControl && <li><Link to="/assembly-control">⚙️ Assembly Control</Link></li>}
+            {isAssemblyWorkstation && <li><Link to={`/assembly/${getAssemblyWorkstationType()}`}>🔩 Assembly Station</Link></li>}
             {isPartsSupplyWarehouse && <li><Link to="/parts-supply-warehouse">📦 Parts Supply Warehouse</Link></li>}
             {isManufacturingWorkstation && <li><Link to={`/manufacturing/${getManufacturingWorkstationType()}`}>🔧 Manufacturing Station</Link></li>}
             {isAdmin && <li><Link to="/admin-dashboard">📊 Admin Dashboard</Link></li>}
