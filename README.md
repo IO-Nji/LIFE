@@ -18,7 +18,7 @@ A microservice-based prototype that digitizes control flows for the LEGO Sample 
   - Workstation entity with type classification (MANUFACTURING, ASSEMBLY, WAREHOUSE).
   - Backed by H2 file-based database (`data/masterdata_service.db`).
   - Automatic data seeding (4 products, 4 modules, 5 parts, 9 workstations).
-- **inventory-service** (Spring Boot, port 8084)
+- **inventory-service** (Spring Boot, port 8014)
   - Stock record management with workstation and item tracking.
   - REST endpoints for stock CRUD operations and workstation inventory queries.
   - Backed by H2 file-based database (`data/inventory_service.db`).
@@ -56,7 +56,7 @@ A microservice-based prototype that digitizes control flows for the LEGO Sample 
 - `GET /api/masterdata/parts` — list individual parts with costs.
 - `GET /api/masterdata/workstations` — list all workstations with type and status.
 
-### Inventory-Service REST API (Port 8084, routed via `/api/stock/**`)
+### Inventory-Service REST API (Port 8014, routed via `/api/stock/**`)
 
 - `GET /api/stock/records` — list all stock records.
 - `POST /api/stock/records` — create new stock record.
@@ -86,7 +86,7 @@ cd 'e:\My Documents\DEV\Java\Project\LIFE\masterdata-service'
 .\mvnw spring-boot:run
 ```
 
-### 3. **Inventory Service** (Port 8084)
+### 3. **Inventory Service** (Port 8014)
 
 Manages stock records. Must be ready before Gateway routes `/api/stock/**` requests.
 

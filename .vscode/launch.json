@@ -8,7 +8,8 @@
             "projectName": "user-service",
             "cwd": "${workspaceFolder}",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=57769 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=user-service"
         },
         {
             "type": "java",
@@ -18,7 +19,8 @@
             "projectName": "api-gateway",
             "cwd": "${workspaceFolder}",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=55168 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=api-gateway"
         },
         {
             "type": "java",
@@ -28,7 +30,8 @@
             "projectName": "masterdata-service",
             "cwd": "${workspaceFolder}",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=56173 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=masterdata-service"
         },
         {
             "type": "java",
@@ -38,7 +41,8 @@
             "projectName": "inventory-service",
             "cwd": "${workspaceFolder}",
             "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=56194 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=inventory-service"
         },
         {
             "type": "java",
@@ -47,6 +51,16 @@
             "mainClass": "io.life.simal_integration_service.SimalIntegrationServiceApplication",
             "projectName": "simal-integration-service",
             "cwd": "${workspaceFolder}",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MasterdataServiceApplication<masterdata-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "io.life.masterdata_service.MasterdataServiceApplication",
+            "projectName": "masterdata-service",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }

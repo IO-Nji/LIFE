@@ -42,7 +42,7 @@ spring:
           predicates:
             - Path=/api/masterdata/**
         - id: inventory-service
-          uri: ${INVENTORY_SERVICE_URI:http://localhost:8084}
+          uri: ${INVENTORY_SERVICE_URI:http://localhost:8014}
           predicates:
             - Path=/api/stock/**
 server:

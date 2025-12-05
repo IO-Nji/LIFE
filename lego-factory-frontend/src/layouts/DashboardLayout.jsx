@@ -7,7 +7,12 @@ function DashboardLayout() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1>LEGO Factory Control</h1>
+        <div className="header-top">
+          <h1>LEGO Factory Control</h1>
+          {isAuthenticated && (
+            <div className="user-info">Signed in as <strong>{session?.user?.username}</strong></div>
+          )}
+        </div>
         <nav>
           <ul className="nav-list">
             <li><Link to="/">Home</Link></li>
@@ -16,14 +21,11 @@ function DashboardLayout() {
             {isAdmin && <li><Link to="/users">User Admin</Link></li>}
             {!isAuthenticated && <li><Link to="/login">Login</Link></li>}
             {isAuthenticated && (
-              <>
-                <li className="nav-user">Signed in as <strong>{session?.user?.username}</strong></li>
-                <li>
-                  <button type="button" className="link-button" onClick={logout}>
-                    Log out
-                  </button>
-                </li>
-              </>
+              <li>
+                <button type="button" className="link-button" onClick={logout}>
+                  Log out
+                </button>
+              </li>
             )}
           </ul>
         </nav>
