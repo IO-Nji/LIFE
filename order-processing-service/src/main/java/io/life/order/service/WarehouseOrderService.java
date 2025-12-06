@@ -2,8 +2,10 @@ package io.life.order.service;
 
 import io.life.order.dto.WarehouseOrderDTO;
 import io.life.order.dto.WarehouseOrderItemDTO;
+import io.life.order.entity.CustomerOrder;
 import io.life.order.entity.WarehouseOrder;
 import io.life.order.entity.WarehouseOrderItem;
+import io.life.order.repository.CustomerOrderRepository;
 import io.life.order.repository.WarehouseOrderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,17 +23,21 @@ public class WarehouseOrderService {
 
     private static final Logger logger = LoggerFactory.getLogger(WarehouseOrderService.class);
     private static final Long PLANT_WAREHOUSE_WORKSTATION_ID = 7L;
+    private static final Long FINAL_ASSEMBLY_WORKSTATION_ID = 6L;
 
     private final WarehouseOrderRepository warehouseOrderRepository;
     private final InventoryService inventoryService;
     private final ProductionOrderService productionOrderService;
+    private final CustomerOrderRepository customerOrderRepository;
 
     public WarehouseOrderService(WarehouseOrderRepository warehouseOrderRepository,
                                  InventoryService inventoryService,
-                                 ProductionOrderService productionOrderService) {
+                                 ProductionOrderService productionOrderService,
+                                 CustomerOrderRepository customerOrderRepository) {
         this.warehouseOrderRepository = warehouseOrderRepository;
         this.inventoryService = inventoryService;
         this.productionOrderService = productionOrderService;
+        this.customerOrderRepository = customerOrderRepository;
     }
 
     /**
@@ -128,6 +134,21 @@ public class WarehouseOrderService {
         if (allItemsFulfilled) {
             order.setStatus("FULFILLED");
             logger.info("Warehouse order {} fully fulfilled", order.getWarehouseOrderNumber());
+            
+            // CRITICAL: Complete source customer order when warehouse order is fully fulfilled
+            try {
+                Optional<CustomerOrder> sourceOrder = customerOrderRepository.findById(order.getSourceCustomerOrderId());
+                if (sourceOrder.isPresent()) {
+                    CustomerOrder customerOrder = sourceOrder.get();
+                    customerOrder.setStatus("COMPLETED");
+                    customerOrder.setNotes((customerOrder.getNotes() != null ? customerOrder.getNotes() + " | " : "") 
+                            + "Warehouse order " + order.getWarehouseOrderNumber() + " fulfilled - order completed");
+                    customerOrderRepository.save(customerOrder);
+                    logger.info("Source customer order {} completed after warehouse order fulfillment", customerOrder.getOrderNumber());
+                }
+            } catch (Exception e) {
+                logger.error("Failed to complete source customer order after warehouse fulfillment: {}", e.getMessage());
+            }
         } else {
             // Scenario 3: Partial fulfillment - Create ProductionOrder for unfulfilled items
             order.setStatus("PROCESSING");
@@ -143,9 +164,10 @@ public class WarehouseOrderService {
                         priority,
                         order.getOrderDate().plusDays(7), // Due 7 days from order date
                         "Created from warehouse order " + order.getWarehouseOrderNumber() + " - partial fulfillment",
-                        PLANT_WAREHOUSE_WORKSTATION_ID
+                        PLANT_WAREHOUSE_WORKSTATION_ID,
+                        FINAL_ASSEMBLY_WORKSTATION_ID  // Assign to Final Assembly for completion
                 );
-                logger.info("Created ProductionOrder for unfulfilled items from warehouse order {}", order.getWarehouseOrderNumber());
+                logger.info("Created ProductionOrder for unfulfilled items from warehouse order {} assigned to Final Assembly", order.getWarehouseOrderNumber());
             } catch (Exception e) {
                 logger.error("Failed to create ProductionOrder for warehouse order {}: {}", order.getWarehouseOrderNumber(), e.getMessage());
             }

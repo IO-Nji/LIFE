@@ -6,6 +6,7 @@ function ModulesSupermarketPage() {
   const { session } = useAuth();
   const [warehouseOrders, setWarehouseOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -13,11 +14,17 @@ function ModulesSupermarketPage() {
   const [fulfillmentInProgress, setFulfillmentInProgress] = useState({});
 
   useEffect(() => {
-    fetchWarehouseOrders();
-    // Refresh orders every 30 seconds
-    const interval = setInterval(fetchWarehouseOrders, 30000);
+    if (session?.user?.workstationId) {
+      fetchWarehouseOrders();
+      fetchInventory();
+    }
+    // Refresh orders every 15 seconds for live updates
+    const interval = setInterval(() => {
+      fetchWarehouseOrders();
+      fetchInventory();
+    }, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [session?.user?.workstationId]);
 
   useEffect(() => {
     // Filter orders based on selected status
@@ -57,6 +64,21 @@ function ModulesSupermarketPage() {
       } else {
         setError("Failed to load warehouse orders: " + (err.response?.data?.message || err.message));
       }
+    }
+  };
+
+  const fetchInventory = async () => {
+    if (!session?.user?.workstationId) return;
+    try {
+      const response = await axios.get(`/api/inventory/workstation/${session.user.workstationId}`);
+      if (Array.isArray(response.data)) {
+        setInventory(response.data);
+      } else {
+        setInventory([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch inventory:", err);
+      setInventory([]);
     }
   };
 
@@ -163,6 +185,41 @@ function ModulesSupermarketPage() {
           </div>
         )}
 
+        {/* Current Inventory */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 mb-6">
+          <div className="bg-blue-50 px-6 py-3 border-b border-blue-200">
+            <h2 className="text-lg font-semibold text-blue-900">Current Inventory</h2>
+          </div>
+          <div className="overflow-x-auto">
+            {inventory.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                <p className="text-sm">No inventory items available</p>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-gray-100 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Item Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Item ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Quantity</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Last Updated</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {inventory.map((item, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.itemType}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{item.itemId}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{item.quantity}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(item.updatedAt).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
         {/* Filter and Refresh Controls */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: "1rem", marginBottom: "1.5rem" }}>
           <button
@@ -260,7 +317,7 @@ function ModulesSupermarketPage() {
                           <button
                             onClick={() => handleFulfillOrder(order.id, order.warehouseOrderNumber)}
                             disabled={fulfillmentInProgress[order.id]}
-                            className="primary-button px-3 py-1 text-xs"
+                            className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                           >
                             {fulfillmentInProgress[order.id] ? "Processing..." : "Fulfill"}
                           </button>

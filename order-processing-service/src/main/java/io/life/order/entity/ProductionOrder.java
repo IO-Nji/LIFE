@@ -89,6 +89,14 @@ public class ProductionOrder {
     private Long createdByWorkstationId;
 
     /**
+     * Workstation ID where this production order should be assigned for assembly/completion.
+     * This is the target workstation (e.g., Final Assembly WS-6) where the order needs to be completed.
+     * Used for routing orders to the correct assembly station.
+     */
+    @Column(nullable = true)
+    private Long assignedWorkstationId;
+
+    /**
      * Additional notes or special instructions for production.
      */
     @Column(length = 1000)

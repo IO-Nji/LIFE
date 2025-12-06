@@ -13,13 +13,17 @@ import java.util.Optional;
 /**
  * Seeds a Modules Supermarket operator account for local development.
  * This allows testing Modules Supermarket functionality without manual user creation.
+ * 
+ * DEPRECATED: This initializer is now superseded by {@link ComprehensiveUserInitializer}.
+ * It is kept for reference but is not auto-wired due to removal of @Component annotation.
+ * Use the comprehensive initializer for all test user creation.
  */
-@Component
+// @Component - DISABLED: Use ComprehensiveUserInitializer instead
 public class ModulesSupermarketUserInitializer implements CommandLineRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModulesSupermarketUserInitializer.class);
-    private static final String MODULES_SUPERMARKET_USERNAME = "modulesSupermarketOp";
-    private static final String MODULES_SUPERMARKET_PASSWORD = "modulesPass";
+    private static final String MODULES_SUPERMARKET_USERNAME = "modules_supermarket_user";
+    private static final String MODULES_SUPERMARKET_PASSWORD = "modules_supermarket_Pass123";
 
     private final UserService userService;
 

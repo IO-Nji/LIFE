@@ -7,25 +7,23 @@ function PlantWarehousePage() {
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState({});
   const [orders, setOrders] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fulfillingOrderId, setFulfillingOrderId] = useState(null);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
-
-  useEffect(() => {
     if (session?.user?.workstationId) {
       fetchOrders();
+      fetchInventory();
     }
   }, [session?.user?.workstationId]);
 
   const fetchProducts = async () => {
     try {
       const response = await axios.get("/api/masterdata/product-variants");
-      console.log("Products response:", response.data);
-      console.log("First product structure:", response.data?.[0]);
       setProducts(response.data);
     } catch (err) {
       setError("Failed to load products: " + (err.response?.data?.message || err.message));
@@ -34,34 +32,38 @@ function PlantWarehousePage() {
 
   const fetchOrders = async () => {
     if (!session?.user?.workstationId) {
-      console.log("Workstation ID not available yet");
       setOrders([]);
       return;
     }
     try {
-      console.log("Fetching orders from:", `/api/customer-orders/workstation/${session.user.workstationId}`);
       const response = await axios.get("/api/customer-orders/workstation/" + session.user.workstationId);
-      console.log("Orders response status:", response.status);
-      console.log("Orders response content-type:", response.headers['content-type']);
-      console.log("Orders response data type:", typeof response.data, "is array:", Array.isArray(response.data));
-      const data = response.data;
-      if (Array.isArray(data)) {
-        setOrders(data);
+      if (Array.isArray(response.data)) {
+        setOrders(response.data);
       } else {
-        console.warn("Expected array of orders, got:", data);
         setOrders([]);
-        setError("Unexpected response format from server. Got HTML instead of JSON. Backend service may not be responding correctly.");
+        setError("Unexpected response format from server.");
       }
     } catch (err) {
-      console.error("Failed to fetch orders:", err);
-      console.error("Error response:", err.response?.status, err.response?.headers, err.response?.data?.substring?.(0, 200));
-      if (err.response?.status === 403) {
-        setError("Authorization denied. Check your role permissions.");
-      } else if (err.response?.status === 404) {
+      if (err.response?.status === 404) {
         setOrders([]);
       } else {
         setError("Failed to load orders: " + (err.response?.data?.message || err.message));
       }
+    }
+  };
+
+  const fetchInventory = async () => {
+    if (!session?.user?.workstationId) return;
+    try {
+      const response = await axios.get(`/api/inventory/workstation/${session.user.workstationId}`);
+      if (Array.isArray(response.data)) {
+        setInventory(response.data);
+      } else {
+        setInventory([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch inventory:", err);
+      setInventory([]);
     }
   };
 
@@ -103,7 +105,7 @@ function PlantWarehousePage() {
         notes: "Plant warehouse order",
       });
 
-      setSuccessMessage(`Order created: ${response.data.orderNumber}`);
+      setSuccessMessage(`Order created: ${response.data.orderNumber} - Click "Fulfill" to process`);
       setSelectedProducts({});
       fetchOrders();
     } catch (err) {
@@ -113,8 +115,25 @@ function PlantWarehousePage() {
     }
   };
 
+  const handleFulfillOrder = async (orderId) => {
+    setFulfillingOrderId(orderId);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await axios.put(`/api/customer-orders/${orderId}/fulfill`);
+      setSuccessMessage(`Order fulfilled successfully! Status: ${response.data.status}`);
+      fetchOrders();
+      fetchInventory();
+    } catch (err) {
+      setError("Failed to fulfill order: " + (err.response?.data?.message || err.message));
+    } finally {
+      setFulfillingOrderId(null);
+    }
+  };
+
   return (
-    <section>
+    <section className="plant-warehouse-page">
       <h2>Plant Warehouse Dashboard</h2>
       
       {session?.user?.workstationId ? (
@@ -127,8 +146,36 @@ function PlantWarehousePage() {
       {successMessage && <div className="success-message">{successMessage}</div>}
 
       <div className="warehouse-layout">
+        <div className="inventory-section">
+          <h3>📦 Current Inventory</h3>
+          {inventory.length > 0 ? (
+            <table className="inventory-table">
+              <thead>
+                <tr>
+                  <th>Item Type</th>
+                  <th>Item ID</th>
+                  <th>Quantity</th>
+                  <th>Last Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inventory.map((item, idx) => (
+                  <tr key={idx}>
+                    <td>{item.itemType || "PRODUCT"}</td>
+                    <td>#{item.itemId}</td>
+                    <td className="quantity-cell">{item.quantity}</td>
+                    <td>{item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="info-text">No inventory records yet</p>
+          )}
+        </div>
+
         <div className="create-order-section">
-          <h3>Create Customer Order</h3>
+          <h3>➕ Create Customer Order</h3>
           <table className="products-table">
             <thead>
               <tr>
@@ -173,34 +220,225 @@ function PlantWarehousePage() {
         </div>
 
         <div className="orders-section">
-          <h3>Recent Orders</h3>
+          <h3>📋 Recent Orders</h3>
           {Array.isArray(orders) && orders.length > 0 ? (
             <div className="orders-list">
               {orders.map((order) => (
                 <div key={order.id} className="order-card">
-                  <p>
-                    <strong>Order:</strong> {order.orderNumber}
-                  </p>
-                  <p>
-                    <strong>Status:</strong>{" "}
-                    <span className={`status-badge status-${order.status.toLowerCase()}`}>
-                      {order.status}
-                    </span>
-                  </p>
-                  <p>
-                    <strong>Date:</strong> {new Date(order.orderDate).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Items:</strong> {order.orderItems?.length || 0}
-                  </p>
+                  <div className="order-header">
+                    <div>
+                      <p>
+                        <strong>Order:</strong> {order.orderNumber}
+                      </p>
+                      <p>
+                        <strong>Status:</strong>{" "}
+                        <span className={`status-badge status-${order.status.toLowerCase()}`}>
+                          {order.status}
+                        </span>
+                      </p>
+                      <p>
+                        <strong>Date:</strong> {new Date(order.orderDate).toLocaleDateString()}
+                      </p>
+                      <p>
+                        <strong>Items:</strong> {order.orderItems?.length || 0}
+                      </p>
+                      {order.notes && (
+                        <p>
+                          <strong>Notes:</strong> {order.notes}
+                        </p>
+                      )}
+                    </div>
+                    {order.status === "PENDING" && (
+                      <button
+                        onClick={() => handleFulfillOrder(order.id)}
+                        disabled={fulfillingOrderId === order.id}
+                        className="fulfill-button"
+                      >
+                        {fulfillingOrderId === order.id ? "Processing..." : "Fulfill Order"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p>No orders found for this workstation</p>
+            <p className="info-text">No orders found for this workstation</p>
           )}
         </div>
       </div>
+
+      <style>{`
+        .plant-warehouse-page {
+          padding: 20px;
+        }
+
+        .warehouse-layout {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin-top: 20px;
+        }
+
+        .inventory-section,
+        .create-order-section,
+        .orders-section {
+          background: #f9f9f9;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: 15px;
+        }
+
+        .inventory-table,
+        .products-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 15px;
+          font-size: 13px;
+        }
+
+        .inventory-table th,
+        .products-table th {
+          background: #e8f4f8;
+          padding: 10px;
+          text-align: left;
+          font-weight: bold;
+          border-bottom: 2px solid #b8d4e0;
+        }
+
+        .inventory-table td,
+        .products-table td {
+          padding: 8px;
+          border-bottom: 1px solid #ddd;
+        }
+
+        .quantity-input {
+          width: 70px;
+          padding: 5px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          text-align: center;
+        }
+
+        .quantity-cell {
+          text-align: center;
+          font-weight: bold;
+          color: #2c5aa0;
+        }
+
+        .primary-button,
+        .fulfill-button {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: background-color 0.3s;
+        }
+
+        .primary-button {
+          background: #2c5aa0;
+          color: white;
+          width: 100%;
+        }
+
+        .primary-button:hover:not(:disabled) {
+          background: #1e3f5a;
+        }
+
+        .primary-button:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+
+        .fulfill-button {
+          background: #28a745;
+          color: white;
+          padding: 8px 15px;
+        }
+
+        .fulfill-button:hover:not(:disabled) {
+          background: #218838;
+        }
+
+        .fulfill-button:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+
+        .order-card {
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          padding: 15px;
+          margin-bottom: 10px;
+        }
+
+        .order-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 15px;
+        }
+
+        .order-header div {
+          flex: 1;
+        }
+
+        .order-card p {
+          margin: 5px 0;
+          font-size: 13px;
+        }
+
+        .order-card strong {
+          color: #333;
+        }
+
+        .status-badge {
+          display: inline-block;
+          padding: 3px 8px;
+          border-radius: 3px;
+          font-size: 11px;
+          font-weight: bold;
+        }
+
+        .status-pending {
+          background: #fff3cd;
+          color: #856404;
+        }
+
+        .status-processing {
+          background: #cfe2ff;
+          color: #084298;
+        }
+
+        .status-completed {
+          background: #d1e7dd;
+          color: #0f5132;
+        }
+
+        .error-message {
+          background: #f8d7da;
+          color: #721c24;
+          padding: 12px;
+          border-radius: 4px;
+          margin-bottom: 15px;
+          border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+          background: #d4edda;
+          color: #155724;
+          padding: 12px;
+          border-radius: 4px;
+          margin-bottom: 15px;
+          border: 1px solid #c3e6cb;
+        }
+
+        .info-text {
+          color: #666;
+          font-style: italic;
+        }
+      `}</style>
     </section>
   );
 }

@@ -40,7 +40,8 @@ public class ProductionOrderService {
             String priority,
             LocalDateTime dueDate,
             String notes,
-            Long createdByWorkstationId) {
+            Long createdByWorkstationId,
+            Long assignedWorkstationId) {
 
         String productionOrderNumber = generateProductionOrderNumber();
 
@@ -53,12 +54,13 @@ public class ProductionOrderService {
                 .dueDate(dueDate)
                 .triggerScenario("SCENARIO_3")
                 .createdByWorkstationId(createdByWorkstationId)
+                .assignedWorkstationId(assignedWorkstationId)
                 .notes(notes)
                 .build();
 
         ProductionOrder saved = productionOrderRepository.save(productionOrder);
-        logger.info("Created production order {} from warehouse order {}", 
-                productionOrderNumber, sourceWarehouseOrderId);
+        logger.info("Created production order {} from warehouse order {} assigned to workstation {}", 
+                productionOrderNumber, sourceWarehouseOrderId, assignedWorkstationId);
 
         return mapToDTO(saved);
     }
@@ -159,6 +161,16 @@ public class ProductionOrderService {
      */
     public List<ProductionOrderDTO> getProductionOrdersByWorkstation(Long createdByWorkstationId) {
         return productionOrderRepository.findByCreatedByWorkstationId(createdByWorkstationId).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get production orders assigned to a specific workstation (assembly/completion).
+     * Used by assembly operators to find orders they need to complete.
+     */
+    public List<ProductionOrderDTO> getProductionOrdersByAssignedWorkstation(Long assignedWorkstationId) {
+        return productionOrderRepository.findByAssignedWorkstationId(assignedWorkstationId).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

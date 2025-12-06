@@ -45,6 +45,11 @@ public interface ProductionOrderRepository extends JpaRepository<ProductionOrder
     List<ProductionOrder> findByCreatedByWorkstationId(Long createdByWorkstationId);
 
     /**
+     * Find all production orders assigned to a specific workstation for assembly/completion.
+     */
+    List<ProductionOrder> findByAssignedWorkstationId(Long assignedWorkstationId);
+
+    /**
      * Find production order by SimAL schedule ID.
      */
     Optional<ProductionOrder> findBySimalScheduleId(String simalScheduleId);

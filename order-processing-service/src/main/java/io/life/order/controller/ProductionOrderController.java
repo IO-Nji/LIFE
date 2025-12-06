@@ -97,12 +97,22 @@ public class ProductionOrderController {
     }
 
     /**
-     * Get production orders by workstation
+     * Get production orders by workstation (created by)
      */
     @GetMapping("/workstation/{createdByWorkstationId}")
     public ResponseEntity<List<ProductionOrderDTO>> getProductionOrdersByWorkstation(
             @PathVariable Long createdByWorkstationId) {
         List<ProductionOrderDTO> orders = productionOrderService.getProductionOrdersByWorkstation(createdByWorkstationId);
+        return ResponseEntity.ok(orders);
+    }
+
+    /**
+     * Get production orders assigned to a workstation (for assembly/completion)
+     */
+    @GetMapping("/assigned/{assignedWorkstationId}")
+    public ResponseEntity<List<ProductionOrderDTO>> getProductionOrdersByAssignedWorkstation(
+            @PathVariable Long assignedWorkstationId) {
+        List<ProductionOrderDTO> orders = productionOrderService.getProductionOrdersByAssignedWorkstation(assignedWorkstationId);
         return ResponseEntity.ok(orders);
     }
 

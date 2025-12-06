@@ -13,13 +13,17 @@ import java.util.Optional;
 /**
  * Seeds a Plant Warehouse operator account for local development.
  * This allows testing warehouse functionality without manual user creation.
+ * 
+ * DEPRECATED: This initializer is now superseded by {@link ComprehensiveUserInitializer}.
+ * It is kept for reference but is not auto-wired due to removal of @Component annotation.
+ * Use the comprehensive initializer for all test user creation.
  */
-@Component
+// @Component - DISABLED: Use ComprehensiveUserInitializer instead
 public class WarehouseUserInitializer implements CommandLineRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WarehouseUserInitializer.class);
-    private static final String WAREHOUSE_USERNAME = "warehouseOperator";
-    private static final String WAREHOUSE_PASSWORD = "warehousePass";
+    private static final String WAREHOUSE_USERNAME = "plant_warehouse_user";
+    private static final String WAREHOUSE_PASSWORD = "plant_warehouse_Pass123";
 
     private final UserService userService;
 
