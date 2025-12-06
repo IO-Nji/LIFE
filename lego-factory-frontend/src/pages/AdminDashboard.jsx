@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import ErrorNotification from "../components/ErrorNotification";
+import { getErrorMessage } from "../utils/errorHandler";
 
 function AdminDashboard() {
   const { session } = useAuth();
@@ -11,6 +13,7 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [error, setError] = useState(null);
+  const [notification, setNotification] = useState(null);
   const [systemStats, setSystemStats] = useState({
     totalOrders: 0,
     pendingOrders: 0,
@@ -47,6 +50,7 @@ function AdminDashboard() {
   const fetchWorkstations = async () => {
     setLoading(true);
     setError(null);
+    setNotification(null);
     try {
       const response = await axios.get("/api/masterdata/workstations");
       const stations = Array.isArray(response.data) ? response.data : [];
@@ -63,7 +67,12 @@ function AdminDashboard() {
       // Await the data fetch before setting loading to false
       await fetchAllWorkstationsData(stations);
     } catch (err) {
-      setError("Failed to load workstations: " + (err.response?.data?.message || err.message));
+      const errorMsg = getErrorMessage(err);
+      setError(errorMsg);
+      setNotification({
+        message: errorMsg,
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -386,6 +395,14 @@ function AdminDashboard() {
 
   return (
     <section className="admin-dashboard">
+      {notification && (
+        <ErrorNotification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+      
       <h2>Admin Dashboard - System Overview</h2>
       <p>User: <strong>{session?.user?.username || "Unknown"}</strong> (Admin)</p>
 

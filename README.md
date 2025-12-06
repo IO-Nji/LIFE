@@ -1,220 +1,248 @@
 # LEGO Sample Factory Control System
 
-A microservice-based prototype that digitizes control flows for the LEGO Sample Factory. This application simulates the Supply Chain 
-process of a manufacturing industry. The platform replaces paper-heavy processes with services that manage gateway routing, user management, reference data, inventory tracking, and workstation role assignments, accompanied by a React frontend for operator dashboards.
+A comprehensive **microservice-based manufacturing control platform** that digitizes and automates the supply chain operations of the LEGO Sample Factory. The system replaces manual, paper-heavy processes with intelligent digital workflows that manage production orders, inventory, workstation assignments, and real-time operational dashboards.
 
-## Implemented Modules
+## Overview
 
-- **api-gateway** (Spring Cloud Gateway, port 8011)
-  - Central routing layer with CORS support for frontend applications on ports 5173 and 5174.
-  - Routes traffic to all downstream microservices with proper path handling.
-- **user-service** (Spring Boot, port 8012)
-  - Full authentication and authorization with JWT token generation.
-  - User management (create, read, update, delete) with role-based access control.
-  - Supports user-to-workstation assignments for role-scoped operations.
-  - Backed by H2 file-based database (`data/user_service.db`).
-- **masterdata-service** (Spring Boot, port 8013)
-  - Reference data management for products, modules, parts, and workstations.
-  - REST endpoints for product variants, manufacturing modules, and parts catalogs.
-  - Workstation entity with type classification (MANUFACTURING, ASSEMBLY, WAREHOUSE).
-  - Backed by H2 file-based database (`data/masterdata_service.db`).
-  - Automatic data seeding (4 products, 4 modules, 5 parts, 9 workstations).
-- **inventory-service** (Spring Boot, port 8014)
-  - Stock record management with workstation and item tracking.
-  - REST endpoints for stock CRUD operations and workstation inventory queries.
-  - Backed by H2 file-based database (`data/inventory_db`).
-- **order-processing-service** (Spring Boot, port 8015)
-  - Customer order management with order items and fulfillment tracking.
-  - Order statuses: PENDING, CONFIRMED, PROCESSING, COMPLETED, CANCELLED.
-  - REST endpoints for order creation, status tracking, and workstation-scoped queries.
-  - Backed by H2 file-based database (`data/order_db`).
-- **lego-factory-frontend** (React + Vite)
-  - Multi-page SPA with authentication, user management, and product catalog.
-  - Dynamic user-workstation assignment UI for administrators.
-  - JWT token interceptor for API calls with automatic session management.
+LIFE (LEGO Integrated Factory Execution) is a production-ready prototype designed to:
+
+- **Manage multi-stage manufacturing**: From order creation through modules assembly to final product delivery
+- **Track inventory in real-time**: Stock management across multiple workstations and warehouse locations
+- **Optimize production scheduling**: Intelligent workstation assignment and task sequencing
+- **Enable role-based operations**: Specialized dashboards for plant warehouse, modules supermarket, and manufacturing teams
+- **Provide system observability**: Comprehensive error handling, structured logging, and performance monitoring
+
+## System Architecture
+
+LIFE uses a **6-tier microservice architecture** with an API Gateway as the central routing layer:
+
+```plaintext
+┌─────────────────────────────────────────────────────────────┐
+│           React Frontend (Port 5173/5174)                    │
+│  ┌──────────────┬──────────────┬──────────────────────────┐ │
+│  │ Dashboard    │ Products     │ Workstation Pages        │ │
+│  │ (Multi-role) │ Catalog      │ (Plant WH, Modules SM)   │ │
+│  └──────────────┴──────────────┴──────────────────────────┘ │
+└───────────────────────────┬────────────────────────────────┘
+                            │
+        ┌───────────────────▼────────────────────┐
+        │   API Gateway (Port 8011)              │
+        │   - Route all requests                 │
+        │   - CORS support                       │
+        │   - Load balancing                     │
+        └───┬──────┬──────┬───────┬────┬────────┘
+            │      │      │       │    │
+       ┌────▼──┐ ┌─▼────┐┌──▼──┐┌─▼──┐┌──▼──┐
+       │ User  │ │Master││Stock││Order│ │Simal│
+       │Service│ │data  ││ mgmt││Proc.│ │Integ│
+       │ 8012  │ │ 8013 ││8014 ││ 8015│ │ 8016│
+       └───────┘ └──────┘└─────┘└────┘└─────┘
+```
+
+**Backend Services**:
+
+- **User Service** (Port 8012): Authentication, authorization, user management
+- **Masterdata Service** (Port 8013): Product catalog, modules, parts, workstations
+- **Inventory Service** (Port 8014): Stock tracking and workstation inventory
+- **Order Processing Service** (Port 8015): Customer orders, fulfillment, warehouse operations
+- **SimAL Integration Service** (Port 8016): Production scheduling and simulation
+
+**Persistence**: Each microservice maintains its own H2 file-based database for complete data isolation.
 
 ## Technology Stack
 
-- **Backend:** Java 21, Spring Boot 3.4.2, Spring Cloud Gateway 2024.0.0, Maven Wrapper, H2 databases (file-based).
-- **Frontend:** React 18, Vite tooling, Axios for API calls, React Router for navigation, LocalStorage for session persistence.
-- **Tooling:** Visual Studio Code workspace, npm package manager, Node.js runtime.
+- **Backend**: Java 21, Spring Boot 3.4.2, Spring Cloud Gateway 2024.0.0, Spring Security, Maven
+- **Database**: H2 (file-based, one per service) for data isolation and easy deployment
+- **Frontend**: React 18+, Vite, Axios, React Router
+- **Tools**: Visual Studio Code, Node.js, npm
 
-## Default Accounts
+## Current Features & Status
 
-- `legoAdmin` / `legoPass` — provisioned automatically in the user-service with the `ADMIN` role for local development. Use this account when signing in from the frontend to manage additional users.
-- `warehouseOperator` / `warehousePass` — provisioned automatically in the user-service with the `PLANT_WAREHOUSE` role for testing warehouse operations. Assigned to the first available PLANT_WAREHOUSE workstation.
+### ✅ Implemented Features
 
-## API Documentation
+#### Authentication & Authorization
 
-### User-Service REST API (Port 8012, routed via `/api/auth/**` and `/api/users/**`)
+- JWT-based authentication for all API requests
+- Role-based access control (ADMIN, PLANT_WAREHOUSE, MODULES_SUPERMARKET, MANUFACTURING_OPERATOR)
+- User management dashboard (create, update, delete, assign workstations)
+- Automatic session management with localStorage
 
-- `POST /api/auth/login` — authenticate user and issue JWT token.
-- `GET /api/users/me` — fetch currently authenticated user's profile with workstationId.
-- `GET /api/users` *(ADMIN)* — list all users with role and workstation assignments.
-- `GET /api/users/{id}` *(ADMIN)* — fetch specific user by ID.
-- `POST /api/users` *(ADMIN)* — create new user with role and optional workstation.
-- `PUT /api/users/{id}` *(ADMIN)* — update user role, workstation, or credentials.
-- `DELETE /api/users/{id}` *(ADMIN)* — delete user account.
+#### Product & Inventory Management
 
-### Masterdata-Service REST API (Port 8013, routed via `/api/masterdata/**`)
+- Product variants catalog with pricing and production time estimates
+- Modular component structure (products → modules → parts)
+- Real-time inventory tracking by workstation
+- Stock record management with item type classification
 
-- `GET /api/masterdata/product-variants` — list all product variants with pricing and lead times.
-- `GET /api/masterdata/modules` — list manufacturing modules with classifications.
-- `GET /api/masterdata/parts` — list individual parts with costs.
-- `GET /api/masterdata/workstations` — list all workstations with type and status.
+#### Order Processing & Fulfillment
 
-### Inventory-Service REST API (Port 8014, routed via `/api/stock/**`)
+- Customer order creation with multiple order items
+- Order status lifecycle (PENDING → CONFIRMED → PROCESSING → COMPLETED/CANCELLED)
+- Warehouse order management for inter-warehouse transfers
+- Fulfill/reject operations with automatic inventory adjustments
 
-- `GET /api/stock/records` — list all stock records.
-- `POST /api/stock/records` — create new stock record.
-- `GET /api/stock/records/{id}` — fetch specific stock record.
-- `PUT /api/stock/records/{id}` — update stock record quantity and details.
-- `DELETE /api/stock/records/{id}` — delete stock record.
-- `GET /api/stock/by-workstation/{workstationId}` — get all stock at a specific workstation.
-- `PUT /api/stock/update/{recordId}` — quick update endpoint for stock quantity changes.
+#### Workstation Operations
 
-### Order-Processing-Service REST API (Port 8015, routed via `/api/customer-orders/**`)
+- Multi-role workstation dashboards:
+  - **Admin Dashboard**: System-wide KPIs, user management, workstation configuration
+  - **Plant Warehouse**: Incoming customer orders, fulfillment actions
+  - **Modules Supermarket**: Warehouse request handling, inventory fulfillment
+  - **Manufacturing Workstations**: Task execution pages for manufacturing and assembly
+- Real-time order/task updates with 15-30 second auto-refresh
 
-- `POST /api/customer-orders` — create new customer order with order items.
-- `GET /api/customer-orders/{id}` — fetch specific order by ID.
-- `GET /api/customer-orders/number/{orderNumber}` — fetch order by order number.
-- `GET /api/customer-orders/workstation/{workstationId}` — list orders for a workstation.
-- `GET /api/customer-orders/status/{status}` — list orders by status (PENDING, CONFIRMED, PROCESSING, COMPLETED, CANCELLED).
-- `PATCH /api/customer-orders/{id}/status` — update order status.
-- `DELETE /api/customer-orders/{id}` — delete order.
+#### Production Scheduling (SimAL)
 
-### SimAL-Integration-Service REST API (Port 8016, routed via `/api/simal/**`)
+- Intelligent workstation allocation based on work type
+- Task sequencing with ISO 8601 timestamps
+- Order-to-schedule linking with realistic time estimates
 
-- `POST /api/simal/production-order` — submit production order for scheduling.
-- `GET /api/simal/scheduled-orders` — list all scheduled orders.
-- `GET /api/simal/scheduled-orders/{scheduleId}` — fetch specific schedule by ID.
-- `GET /api/simal/scheduled-orders/order/{orderNumber}` — fetch schedule by customer order number.
-- `POST /api/simal/update-time` — update production time and status for a task.
+#### Error Handling & Observability
 
-## Service Startup Order
+- Global exception handlers with standardized JSON error responses
+- Structured logging with rolling file appenders (application.log, error.log, debug.log)
+- Frontend toast notifications for user-facing error feedback
+- Stack trace logging for debugging
 
-### 1. **User Service** (Port 8012)
+#### UI/UX Features
 
-Provides JWT authentication required by all other services.
+- Compact, responsive grid layouts for product and order displays
+- Color-coded status badges and item-type indicators
+- Expandable component details (products show modules, modules show parts)
+- Mobile-friendly design with adaptive font sizes and spacing
+- Reduced header height (60% of original) for better screen utilization
+
+## Setup & Running the Application
+
+### Prerequisites
+
+- **Java 21** (Eclipse Adoptium or equivalent)
+- **Node.js 18+** and npm
+- **PowerShell** or Bash (for running Maven and npm commands)
+
+### Build All Services
+
+From the project root directory, build all backend services:
 
 ```powershell
-cd 'e:\My Documents\DEV\Java\Project\LIFE\user-service'
+cd "e:\My Documents\DEV\Java\Project\LIFE"
+
+# Build each service
+cd user-service; .\mvnw clean package -DskipTests; cd ..
+cd masterdata-service; .\mvnw clean package -DskipTests; cd ..
+cd inventory-service; .\mvnw clean package -DskipTests; cd ..
+cd order-processing-service; .\mvnw clean package -DskipTests; cd ..
+cd simal-integration-service; .\mvnw clean package -DskipTests; cd ..
+cd api-gateway; .\mvnw clean package -DskipTests; cd ..
+```
+
+### Start Backend Services
+
+Open **separate terminals** for each service, in this order:
+
+1. **User Service** (Port 8012) - Required first for authentication:
+
+```powershell
+cd "e:\My Documents\DEV\Java\Project\LIFE\user-service"
 .\mvnw spring-boot:run
 ```
 
-### 2. **Masterdata Service** (Port 8013)
-
-Supplies reference data for products, modules, parts, and workstations. Must be ready before Gateway.
+1. **Masterdata Service** (Port 8013) - Required before gateway:
 
 ```powershell
-cd 'e:\My Documents\DEV\Java\Project\LIFE\masterdata-service'
+cd "e:\My Documents\DEV\Java\Project\LIFE\masterdata-service"
 .\mvnw spring-boot:run
 ```
 
-### 3. **Inventory Service** (Port 8014)
-
-Manages stock records. Must be ready before Gateway routes `/api/stock/**` requests.
+1. **Inventory Service** (Port 8014):
 
 ```powershell
-cd 'e:\My Documents\DEV\Java\Project\LIFE\inventory-service'
+cd "e:\My Documents\DEV\Java\Project\LIFE\inventory-service"
 .\mvnw spring-boot:run
 ```
 
-### 4. **Order Processing Service** (Port 8015)
-
-Manages customer orders and fulfillment. Must be ready before Gateway routes `/api/customer-orders/**` requests.
+1. **Order Processing Service** (Port 8015):
 
 ```powershell
-cd 'e:\My Documents\DEV\Java\Project\LIFE\order-processing-service'
+cd "e:\My Documents\DEV\Java\Project\LIFE\order-processing-service"
 .\mvnw spring-boot:run
 ```
 
-### 5. **SimAL Integration Service** (Port 8016)
-
-Provides production scheduling and order simulation. Requires gateway to be ready before routing `/api/simal/**` requests.
+1. **SimAL Integration Service** (Port 8016):
 
 ```powershell
-cd 'e:\My Documents\DEV\Java\Project\LIFE\simal-integration-service'
+cd "e:\My Documents\DEV\Java\Project\LIFE\simal-integration-service"
 .\mvnw spring-boot:run
 ```
 
-### 6. **API Gateway** (Port 8011)
-
-Routes all frontend requests to downstream services. Requires all backend services to be running.
+1. **API Gateway** (Port 8011) - Routes all requests:
 
 ```powershell
-cd 'e:\My Documents\DEV\Java\Project\LIFE\api-gateway'
+cd "e:\My Documents\DEV\Java\Project\LIFE\api-gateway"
 .\mvnw spring-boot:run
 ```
 
-### 7. **Frontend** (Port 5173 or 5174)
+### Start Frontend
 
-React development server. Communicates with Gateway at `http://localhost:8011`.
+In a new terminal, start the React development server:
 
 ```powershell
-cd 'e:\My Documents\DEV\Java\Project\LIFE\lego-factory-frontend'
+cd "e:\My Documents\DEV\Java\Project\LIFE\lego-factory-frontend"
+npm install  # First time only
 npm run dev
 ```
 
-## Database Files
+The frontend will be available at `http://localhost:5173`
 
-Each service maintains its own H2 file-based database in the project root `data/` directory:
-- `data/user_db` — User accounts and authentication tokens.
-- `data/masterdata_db` — Products, modules, parts, and workstations.
-- `data/inventory_db` — Stock records and workstation inventory.
-- `data/order_db` — Customer orders and order items.
+### Default Test Accounts
 
-**Note:** These files are automatically created on first run. To reset data, stop all services and delete the `data/` directory.
+- **Admin Account**: `legoAdmin` / `legoPass`
+  - Full system access, user management, workstation configuration
 
-## Recent Implementation (Day 8-11)
+- **Plant Warehouse**: `warehouseOperator` / `warehousePass`
+  - Access to plant warehouse operations and customer order fulfillment
 
-- ✅ **Order Processing Service**: Created port 8015 service for customer order management.
-- ✅ **Order Entities**: Implemented `CustomerOrder` and `OrderItem` entities with relationships.
-- ✅ **Order Repository & Service**: Full CRUD operations with workstation and status filtering.
-- ✅ **Order API Controller**: REST endpoints for order creation, retrieval, and status management with PLANT_WAREHOUSE authorization.
-- ✅ **Spring Security Integration**: Configured JWT authentication and role-based access control in order-processing-service.
-- ✅ **Plant Warehouse Dashboard**: Created React component displaying product variants, order creation form, and recent orders.
-- ✅ **Order Creation UI**: Form to select products, enter quantities, and submit orders via API Gateway.
-- ✅ **Warehouse User**: Created `warehouseOperator` / `warehousePass` account with PLANT_WAREHOUSE role for testing.
-- ✅ **Navigation Integration**: Added "Warehouse" link to navigation (visible only for PLANT_WAREHOUSE users).
-- ✅ **Status Badges**: Color-coded order status display (PENDING, CONFIRMED, PROCESSING, COMPLETED, CANCELLED).
-- ✅ **Gateway Integration**: Added route `/api/customer-orders/**` → `http://localhost:8015`.
-- ✅ **Service Builds**: All services compile and run successfully.
-- ✅ **Day 11 - Warehouse Orders Management**:
-  - **WarehouseOrder Entity**: Lifecycle management with statuses (PENDING, PROCESSING, FULFILLED, REJECTED, CANCELLED).
-  - **WarehouseOrderItem Entity**: Line item tracking with requested/fulfilled quantities.
-  - **WarehouseOrderRepository & Service**: Full CRUD with fulfill logic and inventory integration.
-  - **WarehouseOrderController**: 6 REST endpoints with role-based authorization (@PreAuthorize("hasRole('MODULES_SUPERMARKET')")).
-  - **FulfillmentService Enhancement**: Auto-creates warehouse orders in scenarios 2-3 (no stock / partial fulfillment).
-  - **ModulesSupermarketPage React Component**: Dashboard for warehouse order management with:
-    - Real-time order fetching and 30-second auto-refresh
-    - Status filtering (ALL, PENDING, PROCESSING, FULFILLED, REJECTED, CANCELLED)
-    - Fulfill and cancel actions with inventory updates
-    - Order summary statistics (Total, Pending, Processing, Fulfilled counts)
-    - Compact item display format: "Item Name — 5req / 3ful"
-    - Responsive dual-column layout (Order Summary | About Warehouse Orders)
-  - **ModulesSupermarketUserInitializer**: Auto-creates test account (modulesSupermarketOp / modulesPass, workstation 8).
-  - **Role-Based Access Control**: New MODULES_SUPERMARKET role with protected endpoints.
-  - **UI/UX Improvements**:
-    - Removed emoji icons throughout
-    - Inline flex layout for filter controls and statistics
-    - Property-value pair formatting for compact display
-    - Color-coded status badges (Yellow/Blue/Green/Red/Gray)
-    - Separator lines between statistics rows
-- ✅ **Day 12 - SimAL Integration Service (Mock)**:
-  - **SimAL DTOs**: Created `SimalProductionOrderRequest`, `SimalScheduledOrderResponse`, `SimalUpdateTimeRequest`.
-  - **Mock Controller**: Implemented `SimalController` with 5 REST endpoints (production-order, scheduled-orders, update-time).
-  - **Workstation Assignment**: Intelligent workstation allocation based on work type (MANUFACTURING, ASSEMBLY, WAREHOUSE).
-  - **Time Calculation**: Automatic scheduling with ISO 8601 timestamps and task sequencing.
-  - **In-Memory Storage**: Production schedules stored in HashMap for mock demonstration.
-  - **API Gateway Integration**: Added route `/api/simal/**` → `http://localhost:8016`.
-  - **CORS Configuration**: Enabled for frontend communication (ports 5173 and 5174).
-  - **Realistic Mock Data**: Returns authentic schedule data with task sequences, durations, and workstation names.
-    - Separator lines between statistics rows
+- **Modules Supermarket**: `modulesSupermarketOp` / `modulesPass`
+  - Warehouse order management and module inventory fulfillment
 
-## Project Roadmap
+## API Endpoints Summary
 
-**Week 2 (Days 8-11)**: Customer order creation, fulfillment logic, warehouse management, and modules supermarket. ✅ Days 8-11 complete.
-**Week 3 (Days 12-15)**: SimAL integration, schedule optimization, and order-to-schedule linking. ✅ Day 12 complete.
-**Week 4 (Days 16-20)**: Workstation execution, real-time status updates, and production dashboards.
-**Week 5 (Days 21-25)**: Prototype refinement and stakeholder showcase.
+All endpoints are routed through the API Gateway at `http://localhost:8011`
+
+**Authentication**: `POST /api/auth/login` — Submit username/password, receive JWT token
+
+**User Management** (Admin-only):
+
+- `GET /api/users` — List all users
+- `POST /api/users` — Create new user
+- `PUT /api/users/{id}` — Update user
+- `DELETE /api/users/{id}` — Delete user
+
+**Master Data** (All authenticated users):
+
+- `GET /api/masterdata/product-variants` — Product catalog
+- `GET /api/masterdata/modules` — Manufacturing modules
+- `GET /api/masterdata/parts` — Component parts
+- `GET /api/masterdata/workstations` — Workstation configuration
+
+**Inventory Management**:
+
+- `GET /api/stock/records` — All stock records
+- `GET /api/stock/by-workstation/{workstationId}` — Workstation inventory
+- `PUT /api/stock/records/{id}` — Update stock
+
+**Order Processing** (Plant Warehouse role):
+
+- `POST /api/customer-orders` — Create order
+- `GET /api/customer-orders` — List orders
+- `PATCH /api/customer-orders/{id}/status` — Update status
+
+**Warehouse Orders** (Modules Supermarket role):
+
+- `GET /api/warehouse-orders` — Pending orders
+- `POST /api/warehouse-orders/{id}/fulfill` — Fulfill order
+- `POST /api/warehouse-orders/{id}/reject` — Reject order
+
+**Production Scheduling**:
+
+- `POST /api/simal/production-order` — Submit production order
+- `GET /api/simal/scheduled-orders` — View schedules

@@ -1,0 +1,5 @@
+2025-12-06 04:04:17.504 [main] DEBUG i.l.s.SimalIntegrationServiceApplication - Running with Spring Boot v3.4.2, Spring v6.2.2
+2025-12-06 04:04:20.254 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - 9 mappings in 'requestMappingHandlerMapping'
+2025-12-06 04:04:20.385 [main] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2025-12-06 04:04:20.440 [main] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-12-06 04:04:20.504 [main] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice

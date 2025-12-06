@@ -1,29 +1,57 @@
 import { useState, useEffect } from 'react';
 import api from '../api/api';
-import { useNavigate } from 'react-router-dom';
+import './ProductsPage.css';
 
 export default function ProductsPage() {
-  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
+  const [modules, setModules] = useState([]);
+  const [parts, setParts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [expandedModules, setExpandedModules] = useState({});
 
   useEffect(() => {
-    fetchProducts();
+    fetchAllData();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchAllData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/api/masterdata/product-variants');
-      setProducts(response.data);
+      const [productsRes, modulesRes, partsRes] = await Promise.all([
+        api.get('/api/masterdata/product-variants'),
+        api.get('/api/masterdata/modules'),
+        api.get('/api/masterdata/parts')
+      ]);
+      setProducts(productsRes.data);
+      setModules(modulesRes.data);
+      setParts(partsRes.data);
     } catch (err) {
-      console.error('Error fetching products:', err);
+      console.error('Error fetching data:', err);
       setError(err.response?.data?.message || 'Failed to load products');
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleModuleExpand = (moduleId) => {
+    setExpandedModules(prev => ({
+      ...prev,
+      [moduleId]: !prev[moduleId]
+    }));
+  };
+
+  const getModulePartsForProduct = (product) => {
+    // In a real scenario, these would come from a junction table
+    // For now, we'll show all modules as available for this product
+    return modules;
+  };
+
+  const getPartsForModule = (module) => {
+    // In a real scenario, these would come from a junction table
+    // For now, we'll show all parts as available for this module
+    return parts;
   };
 
   if (loading) {
@@ -38,45 +66,107 @@ export default function ProductsPage() {
     return (
       <div style={{ padding: '20px', color: 'red' }}>
         <p>Error: {error}</p>
-        <button onClick={fetchProducts}>Retry</button>
+        <button onClick={fetchAllData}>Retry</button>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Products</h1>
-      <p>Available LEGO Product Variants: {products.length}</p>
+    <div className="products-container">
+      <div className="products-header">
+        <h1>Products Catalog</h1>
+        <p className="products-subtitle">LEGO Product Variants: {products.length} | Modules: {modules.length} | Parts: {parts.length}</p>
+      </div>
 
-      {products.length === 0 ? (
-        <p>No products available</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-          {products.map(product => (
-            <div key={product.id} style={{
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              padding: '15px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              cursor: 'pointer',
-              transition: 'transform 0.2s, boxShadow 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-            }}>
-              <h3>{product.name}</h3>
-              <p>{product.description}</p>
-              <div style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
-                <p><strong>Price:</strong> ${product.price.toFixed(2)}</p>
-                <p><strong>Est. Time:</strong> {product.estimatedTimeMinutes} minutes</p>
+      {selectedProduct ? (
+        <div className="product-details">
+          <button className="btn-back" onClick={() => setSelectedProduct(null)}>← Back to Products</button>
+          
+          <div className="product-info">
+            <h2>{selectedProduct.name}</h2>
+            <p className="product-desc">{selectedProduct.description}</p>
+            <div className="product-specs">
+              <div className="spec-item">
+                <strong>Price:</strong> <span className="price">${selectedProduct.price.toFixed(2)}</span>
+              </div>
+              <div className="spec-item">
+                <strong>Est. Time:</strong> <span>{selectedProduct.estimatedTimeMinutes} minutes</span>
               </div>
             </div>
-          ))}
+          </div>
+
+          <div className="components-section">
+            <h3>Product Components</h3>
+            
+            <div className="modules-list">
+              {getModulePartsForProduct(selectedProduct).length === 0 ? (
+                <p className="empty-message">No components available for this product</p>
+              ) : (
+                getModulePartsForProduct(selectedProduct).map(module => (
+                  <div key={module.id} className="module-card">
+                    <div 
+                      className="module-header"
+                      onClick={() => toggleModuleExpand(module.id)}
+                    >
+                      <span className="expand-icon">
+                        {expandedModules[module.id] ? '▼' : '▶'}
+                      </span>
+                      <div className="module-info">
+                        <h4>{module.name}</h4>
+                        <p className="module-type">{module.type || 'COMPONENT'}</p>
+                      </div>
+                    </div>
+
+                    {expandedModules[module.id] && (
+                      <div className="module-content">
+                        <p className="module-description">{module.description}</p>
+                        
+                        <div className="parts-sublist">
+                          <h5>Parts Required:</h5>
+                          {getPartsForModule(module).length === 0 ? (
+                            <p className="empty-message">No parts specified</p>
+                          ) : (
+                            <ul>
+                              {getPartsForModule(module).map(part => (
+                                <li key={part.id} className="part-item">
+                                  <span className="part-name">{part.name}</span>
+                                  <span className="part-category">{part.category}</span>
+                                  <span className="part-cost">${part.unitCost?.toFixed(2) || '0.00'}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="products-grid">
+          {products.length === 0 ? (
+            <p className="empty-message">No products available</p>
+          ) : (
+            products.map(product => (
+              <div 
+                key={product.id} 
+                className="product-card"
+                onClick={() => setSelectedProduct(product)}
+              >
+                <div className="product-card-content">
+                  <h3>{product.name}</h3>
+                  <p className="card-description">{product.description}</p>
+                  <div className="card-specs">
+                    <span className="price-badge">${product.price.toFixed(2)}</span>
+                    <span className="time-badge">{product.estimatedTimeMinutes}m</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>
