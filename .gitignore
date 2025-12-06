@@ -48,6 +48,9 @@ masterdata-service/data/masterdata_db.mv.db
 DAY_12_SIMAL_INTEGRATION.md
 .gitignore
 DAY_12_SUMMARY.md
+
+# Documentation folder
+docs/
 DAY_13_PRODUCTION_ORDERS.md
 DAY_13_SESSION_SUMMARY.md
 DAY_13_FILES_MANIFEST.md
@@ -150,3 +153,14 @@ docs/CUSTOMER_ORDER_WORKFLOW_GUIDE.md
 docs/TEST_DATA_REFERENCE.md
 docs/TEST_USERS_QUICK_REFERENCE.md
 docs/USERS_READY.md
+user-service/logs/debug.log
+user-service/logs/application.log
+user-service/data/user_service_db.mv.db
+order-processing-service/logs/error.log
+order-processing-service/logs/debug.log
+masterdata-service/logs/debug.log
+masterdata-service/data/masterdata_db.mv.db
+inventory-service/logs/error.log
+docs/TEST_DATA_INITIALIZATION.sql
+api-gateway/logs/debug.log
+api-gateway/logs/application.log
