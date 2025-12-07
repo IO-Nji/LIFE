@@ -49,42 +49,12 @@ function DashboardLayout() {
             <li><Link to="/">Home</Link></li>
             
             {/* Authenticated User Navigation */}
-            {isAuthenticated && <li><Link to="/dashboard">Dashboard</Link></li>}
             {isAuthenticated && <li><Link to="/products">📦 Products</Link></li>}
-
-            {/* Plant Warehouse Navigation */}
-            {isPlantWarehouse && <li><Link to="/warehouse">🏭 Plant Warehouse</Link></li>}
-
-            {/* Modules Supermarket Navigation */}
-            {isModulesSupermarket && <li><Link to="/modules-supermarket">🏢 Modules Supermarket</Link></li>}
-
-            {/* Production Planning Navigation */}
-            {isProductionPlanning && <li><Link to="/production-planning">📋 Production Planning</Link></li>}
-
-            {/* Production Control Navigation */}
-            {isProductionControl && <li><Link to="/production-control">🏭 Production Control</Link></li>}
-
-            {/* Assembly Control Navigation */}
-            {isAssemblyControl && <li><Link to="/assembly-control">⚙️ Assembly Control</Link></li>}
-
-            {/* Manufacturing Workstation Navigation */}
-            {isManufacturingWorkstation && (
-              <li><Link to={`/manufacturing/${getManufacturingWorkstationType()}`}>🔧 Manufacturing Station</Link></li>
-            )}
-
-            {/* Assembly Workstation Navigation */}
-            {isAssemblyWorkstation && (
-              <li><Link to={`/assembly/${getAssemblyWorkstationType()}`}>🔩 Assembly Station</Link></li>
-            )}
-
-            {/* Parts Supply Warehouse Navigation */}
-            {isPartsSupplyWarehouse && <li><Link to="/parts-supply-warehouse">📦 Parts Supply Warehouse</Link></li>}
 
             {/* Admin Navigation */}
             {isAdmin && <li><Link to="/admin-dashboard">📊 Admin Dashboard</Link></li>}
-            {isAdmin && <li><Link to="/production-planning">📋 Production Planning</Link></li>}
-            {isAdmin && <li><Link to="/inventory">📦 Inventory Management</Link></li>}
-            {isAdmin && <li><Link to="/users">👥 User Management</Link></li>}
+            {isAdmin && <li><Link to="/inventory">📦 Inventory</Link></li>}
+            {isAdmin && <li><Link to="/users">👥 Users</Link></li>}
             {isAdmin && <li><Link to="/warehouses">🏭 Warehouses</Link></li>}
 
             {/* Authentication */}

@@ -30,33 +30,29 @@ function AdminDashboardPage() {
     setError(null);
 
     try {
-      // Fetch workstations
-      const wsResponse = await axios.get("/api/masterdata/workstations");
-      setWorkstations(Array.isArray(wsResponse.data) ? wsResponse.data : []);
+      // Fetch all data in parallel
+      const [wsResponse, prodResponse, asmResponse, supResponse] = await Promise.all([
+        axios.get("/api/masterdata/workstations"),
+        axios.get("/api/production-control-orders"),
+        axios.get("/api/assembly-control-orders"),
+        axios.get("/api/supply-orders/warehouse"),
+      ]);
 
-      // Fetch production control orders
-      const prodResponse = await axios.get("/api/production-control-orders");
-      setOrders((prev) => ({
-        ...prev,
-        production: Array.isArray(prodResponse.data) ? prodResponse.data : [],
-      }));
+      // Process and set all data together
+      const wsData = Array.isArray(wsResponse.data) ? wsResponse.data : [];
+      const prodData = Array.isArray(prodResponse.data) ? prodResponse.data : [];
+      const asmData = Array.isArray(asmResponse.data) ? asmResponse.data : [];
+      const supData = Array.isArray(supResponse.data) ? supResponse.data : [];
 
-      // Fetch assembly control orders
-      const asmResponse = await axios.get("/api/assembly-control-orders");
-      setOrders((prev) => ({
-        ...prev,
-        assembly: Array.isArray(asmResponse.data) ? asmResponse.data : [],
-      }));
+      setWorkstations(wsData);
+      setOrders({
+        production: prodData,
+        assembly: asmData,
+        supply: supData,
+      });
 
-      // Fetch supply orders
-      const supResponse = await axios.get("/api/supply-orders/warehouse");
-      setOrders((prev) => ({
-        ...prev,
-        supply: Array.isArray(supResponse.data) ? supResponse.data : [],
-      }));
-
-      // Calculate stats
-      calculateStats(wsResponse.data, prodResponse.data, asmResponse.data, supResponse.data);
+      // Calculate stats with fresh data
+      calculateStats(wsData, prodData, asmData, supData);
     } catch (err) {
       setError("Failed to load dashboard data: " + (err.message || "Unknown error"));
       console.error("Dashboard fetch error:", err);

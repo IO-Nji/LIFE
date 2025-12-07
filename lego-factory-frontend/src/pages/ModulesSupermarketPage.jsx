@@ -72,7 +72,7 @@ function ModulesSupermarketPage() {
   const fetchInventory = async () => {
     if (!session?.user?.workstationId) return;
     try {
-      const response = await axios.get(`/api/inventory/workstation/${session.user.workstationId}`);
+      const response = await axios.get(`/api/stock/workstation/${session.user.workstationId}`);
       if (Array.isArray(response.data)) {
         setInventory(response.data);
       } else {

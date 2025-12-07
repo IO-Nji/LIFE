@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../api/api';
 import './ProductsPage.css';
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
+  const { session } = useAuth();
   const [products, setProducts] = useState([]);
   const [modules, setModules] = useState([]);
   const [parts, setParts] = useState([]);
@@ -74,8 +78,28 @@ export default function ProductsPage() {
   return (
     <div className="products-container">
       <div className="products-header">
-        <h1>Products Catalog</h1>
-        <p className="products-subtitle">LEGO Product Variants: {products.length} | Modules: {modules.length} | Parts: {parts.length}</p>
+        <div className="header-content">
+          <h1>Products Catalog</h1>
+          <p className="products-subtitle">LEGO Product Variants: {products.length} | Modules: {modules.length} | Parts: {parts.length}</p>
+        </div>
+        {session?.user?.role === 'ADMIN' && (
+          <div className="admin-nav-links">
+            <button 
+              className="admin-link-btn"
+              onClick={() => navigate('/admin-dashboard?tab=products')}
+              title="Manage product variants"
+            >
+              🛠️ Manage Variants
+            </button>
+            <button 
+              className="admin-link-btn"
+              onClick={() => navigate('/admin-dashboard')}
+              title="Go to admin dashboard"
+            >
+              📊 Admin Dashboard
+            </button>
+          </div>
+        )}
       </div>
 
       {selectedProduct ? (

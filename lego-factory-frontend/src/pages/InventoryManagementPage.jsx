@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import ErrorNotification from "../components/ErrorNotification";
 import { getErrorMessage } from "../utils/errorHandler";
 import "../styles/DashboardStandard.css";
+import "../styles/AdminDashboard.css";
 
 function InventoryManagementPage() {
   const { session } = useAuth();
@@ -83,7 +84,7 @@ function InventoryManagementPage() {
 
     for (const station of stations) {
       try {
-        const response = await axios.get(`/api/inventory/workstation/${station.id}`);
+        const response = await axios.get(`/api/stock/workstation/${station.id}`);
         let items = Array.isArray(response.data) ? response.data : [];
         
         // If API returns empty but we have test data available, use demo data
@@ -222,32 +223,33 @@ function InventoryManagementPage() {
 
   const renderOverviewTab = () => (
     <div className="inventory-overview">
-      <div className="overview-stats">
-        <div className="stat-card">
-          <div className="stat-value">{totalInventoryItems}</div>
-          <div className="stat-label">Total Items in Stock</div>
+      <div className="kpi-grid">
+        <div className="kpi-card">
+          <div className="kpi-value">{totalInventoryItems}</div>
+          <div className="kpi-label">Total Items in Stock</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-value">{workstations.length}</div>
-          <div className="stat-label">Active Workstations</div>
+        <div className="kpi-card">
+          <div className="kpi-value">{workstations.length}</div>
+          <div className="kpi-label">Active Workstations</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: lowStockItems.length > 0 ? '#e53935' : '#2e7d32' }}>
+        <div className={`kpi-card ${lowStockItems.length > 0 ? 'active' : ''}`}>
+          <div className="kpi-value" style={{ color: lowStockItems.length > 0 ? '#e53935' : '#2e7d32' }}>
             {lowStockItems.length}
           </div>
-          <div className="stat-label">Low Stock Items</div>
+          <div className="kpi-label">Low Stock Items</div>
         </div>
       </div>
 
       {lowStockItems.length > 0 && (
-        <div className="low-stock-section">
+        <div className="tab-content" style={{ marginTop: '1.5rem' }}>
           <h3>⚠️ Low Stock Alert</h3>
-          <div className="low-stock-table-container">
-            <table className="low-stock-table">
-              <thead>
-                <tr>
-                  <th>Workstation</th>
-                  <th>Item Type</th>
+          <div className="dashboard-section">
+            <div className="low-stock-table-container">
+              <table className="low-stock-table">
+                <thead>
+                  <tr>
+                    <th>Workstation</th>
+                    <th>Item Type</th>
                   <th>Item ID</th>
                   <th>Current Qty</th>
                   <th>Action</th>
@@ -422,17 +424,18 @@ function InventoryManagementPage() {
 
   if (error && activeTab === "overview") {
     return (
-      <div className="page-container">
+      <section className="admin-dashboard">
+        <h2>📦 Inventory Management</h2>
         <ErrorNotification
           message={error}
           onDismiss={() => setError(null)}
         />
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="page-container inventory-management-page">
+    <section className="admin-dashboard">
       {notification && (
         <div className={`notification ${notification.type}`}>
           {notification.message}
@@ -440,12 +443,14 @@ function InventoryManagementPage() {
         </div>
       )}
 
-      <div className="page-header">
-        <h1>📦 Inventory Management</h1>
-        <p className="page-subtitle">Manage and monitor inventory across all workstations</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <div>
+          <h2>📦 Inventory Management</h2>
+          <p className="admin-subtitle">Manage and monitor inventory across all workstations</p>
+        </div>
       </div>
 
-      <div className="tabs-container">
+      <div className="dashboard-tabs">
         <button
           className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
@@ -884,7 +889,7 @@ function InventoryManagementPage() {
           }
         }
       `}</style>
-    </div>
+    </section>
   );
 }
 

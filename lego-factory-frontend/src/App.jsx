@@ -1,19 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import UserManagementPage from "./pages/UserManagementPage.jsx";
 import WarehouseManagementPage from "./pages/WarehouseManagementPage.jsx";
-import AdminDashboard from "./pages/AdminDashboard.jsx";
 import InventoryManagementPage from "./pages/InventoryManagementPage.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
-import PlantWarehousePage from "./pages/PlantWarehousePage.jsx";
-import ModulesSupermarketPage from "./pages/ModulesSupermarketPage.jsx";
-import ProductionPlanningPage from "./pages/ProductionPlanningPage.jsx";
-import ProductionControlPage from "./pages/ProductionControlPage.jsx";
-import AssemblyControlPage from "./pages/AssemblyControlPage.jsx";
-import PartsSupplyWarehousePage from "./pages/PartsSupplyWarehousePage.jsx";
-import ManufacturingWorkstationPage from "./pages/ManufacturingWorkstationPage.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -85,7 +78,7 @@ function App() {
           path="warehouse"
           element={
             isPlantWarehouse ? (
-              <PlantWarehousePage />
+              <DashboardPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
@@ -95,7 +88,7 @@ function App() {
           path="modules-supermarket"
           element={
             isModulesSupermarket ? (
-              <ModulesSupermarketPage />
+              <DashboardPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
@@ -105,7 +98,7 @@ function App() {
           path="production-planning"
           element={
             isProductionPlanning ? (
-              <ProductionPlanningPage />
+              <DashboardPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
@@ -115,7 +108,7 @@ function App() {
           path="production-control"
           element={
             isProductionControl ? (
-              <ProductionControlPage />
+              <DashboardPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
@@ -125,7 +118,7 @@ function App() {
           path="assembly-control"
           element={
             isAssemblyControl ? (
-              <AssemblyControlPage />
+              <DashboardPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )
@@ -135,7 +128,7 @@ function App() {
           path="parts-supply-warehouse"
           element={
             isPartsSupplyWarehouse ? (
-              <PartsSupplyWarehousePage />
+              <DashboardPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )

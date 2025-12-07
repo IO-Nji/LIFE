@@ -4,6 +4,17 @@ import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import "../styles/DashboardStandard.css";
 
+/**
+ * Product name mapping
+ * Maps itemId to product variant name
+ */
+const PRODUCT_NAMES = {
+  1: { name: "Technic Truck Yellow" },
+  2: { name: "Technic Truck Red" },
+  3: { name: "Creator House" },
+  4: { name: "Friends Cafe" },
+};
+
 function PlantWarehousePage() {
   const navigate = useNavigate();
   const { session } = useAuth();
@@ -67,7 +78,7 @@ function PlantWarehousePage() {
   const fetchInventory = async () => {
     if (!session?.user?.workstationId) return;
     try {
-      const response = await axios.get(`/api/inventory/workstation/${session.user.workstationId}`);
+      const response = await axios.get(`/api/stock/workstation/${session.user.workstationId}`);
       if (Array.isArray(response.data)) {
         setInventory(response.data);
       } else {
@@ -251,7 +262,7 @@ function PlantWarehousePage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Item Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Product</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Item ID</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Qty</th>
                   </tr>
@@ -259,7 +270,7 @@ function PlantWarehousePage() {
                 <tbody className="divide-y divide-gray-200">
                   {inventory.map((item, idx) => (
                     <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-900">{item.itemType || "PRODUCT"}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-900">{PRODUCT_NAMES[item.itemId]?.name || `Product #${item.itemId}`}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-600">#{item.itemId}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-900 font-semibold">{item.quantity}</td>
                     </tr>
