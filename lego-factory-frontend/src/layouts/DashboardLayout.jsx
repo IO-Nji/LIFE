@@ -82,7 +82,10 @@ function DashboardLayout() {
 
             {/* Admin Navigation */}
             {isAdmin && <li><Link to="/admin-dashboard">📊 Admin Dashboard</Link></li>}
+            {isAdmin && <li><Link to="/production-planning">📋 Production Planning</Link></li>}
+            {isAdmin && <li><Link to="/inventory">📦 Inventory Management</Link></li>}
             {isAdmin && <li><Link to="/users">👥 User Management</Link></li>}
+            {isAdmin && <li><Link to="/warehouses">🏭 Warehouses</Link></li>}
 
             {/* Authentication */}
             {!isAuthenticated && <li><Link to="/login">Login</Link></li>}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import "../styles/DashboardStandard.css";
 import "../styles/AdminDashboard.css";
 
 function AdminDashboardPage() {
@@ -19,8 +20,8 @@ function AdminDashboardPage() {
 
   useEffect(() => {
     fetchDashboardData();
-    // Auto-refresh every 15 seconds
-    const interval = setInterval(fetchDashboardData, 15000);
+    // ENHANCED: Auto-refresh every 5 seconds for real-time updates
+    const interval = setInterval(fetchDashboardData, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -137,8 +138,30 @@ function AdminDashboardPage() {
 
   return (
     <section className="admin-dashboard">
-      <h2>🏭 Factory Admin Dashboard</h2>
-      <p className="admin-subtitle">Real-time monitoring and control of factory operations</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <div>
+          <h2>🏭 Factory Admin Dashboard</h2>
+          <p className="admin-subtitle">Real-time monitoring and control of factory operations</p>
+        </div>
+        <button
+          onClick={fetchDashboardData}
+          disabled={loading}
+          style={{
+            padding: "0.5rem 1rem",
+            backgroundColor: "#3b82f6",
+            color: "white",
+            border: "none",
+            borderRadius: "0.375rem",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.6 : 1,
+            fontSize: "0.875rem",
+            fontWeight: "500",
+            height: "fit-content",
+          }}
+        >
+          {loading ? "⟳ Refreshing..." : "⟳ Refresh"}
+        </button>
+      </div>
 
       {error && <div className="error-alert">{error}</div>}
 
@@ -414,7 +437,22 @@ function AdminDashboardPage() {
                 {orders.production.map((order) => (
                   <div key={order.id} className="table-row">
                     <div className="col-id">PO-{order.id}</div>
-                    <div className="col-product">{order.productName || "Unknown"}</div>
+                    <div className="col-product">
+                      {order.orderItems && order.orderItems.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          {order.orderItems.map((item, idx) => (
+                            <span key={idx} style={{ fontSize: '0.85rem', padding: '0.25rem 0.5rem', backgroundColor: '#f3f4f6', borderRadius: '0.25rem' }}>
+                              <span style={{ fontWeight: '600' }}>{item.itemType || item.name || 'Item'}</span>
+                              <span style={{ color: '#999', margin: '0 0.25rem' }}>×</span>
+                              <span style={{ color: '#059669', fontWeight: '600' }}>{item.quantity}</span>
+                              {item.status && <span style={{ color: '#666', fontSize: '0.75rem', marginLeft: '0.25rem' }}>({item.status})</span>}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span>{order.productName || "Unknown"}</span>
+                      )}
+                    </div>
                     <div className="col-workstation">
                       WS-{order.assignedWorkstationId || "—"}
                     </div>
@@ -456,7 +494,22 @@ function AdminDashboardPage() {
                 {orders.assembly.map((order) => (
                   <div key={order.id} className="table-row">
                     <div className="col-id">AO-{order.id}</div>
-                    <div className="col-product">{order.productName || "Unknown"}</div>
+                    <div className="col-product">
+                      {order.orderItems && order.orderItems.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          {order.orderItems.map((item, idx) => (
+                            <span key={idx} style={{ fontSize: '0.85rem', padding: '0.25rem 0.5rem', backgroundColor: '#f3f4f6', borderRadius: '0.25rem' }}>
+                              <span style={{ fontWeight: '600' }}>{item.itemType || item.name || 'Item'}</span>
+                              <span style={{ color: '#999', margin: '0 0.25rem' }}>×</span>
+                              <span style={{ color: '#059669', fontWeight: '600' }}>{item.quantity}</span>
+                              {item.status && <span style={{ color: '#666', fontSize: '0.75rem', marginLeft: '0.25rem' }}>({item.status})</span>}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span>{order.productName || "Unknown"}</span>
+                      )}
+                    </div>
                     <div className="col-workstation">
                       WS-{order.assignedWorkstationId || "—"}
                     </div>

@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import "../styles/DashboardStandard.css";
 
 function PlantWarehousePage() {
+  const navigate = useNavigate();
   const { session } = useAuth();
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState({});
@@ -19,6 +22,15 @@ function PlantWarehousePage() {
       fetchOrders();
       fetchInventory();
     }
+    
+    // Auto-refresh inventory every 10 seconds for live updates
+    const inventoryInterval = setInterval(() => {
+      if (session?.user?.workstationId) {
+        fetchInventory();
+      }
+    }, 10000);
+    
+    return () => clearInterval(inventoryInterval);
   }, [session?.user?.workstationId]);
 
   const fetchProducts = async () => {
@@ -134,215 +146,271 @@ function PlantWarehousePage() {
 
   return (
     <section className="plant-warehouse-page">
-      <h2>Plant Warehouse Dashboard</h2>
-      
+      {/* Header */}
+      <div className="page-header">
+        <h1 className="page-title">🏢 Plant Warehouse Dashboard</h1>
+        <p className="page-subtitle">Manage inventory and customer orders</p>
+      </div>
+
       {session?.user?.workstationId ? (
-        <p>Workstation ID: <strong>{session.user.workstationId}</strong></p>
+        <p style={{ fontSize: "0.9rem", color: "#666", marginBottom: "1rem" }}>Workstation ID: <strong>{session.user.workstationId}</strong></p>
       ) : (
-        <div className="error-message">⚠️ No workstation assigned to your account. Contact administrator.</div>
+        <div className="form-error mb-6 p-4 bg-red-50 border-l-4 border-red-600 rounded">
+          <p className="font-semibold text-red-900">⚠️ No workstation assigned</p>
+          <p className="text-red-800 text-sm mt-1">Contact administrator to assign a workstation to your account.</p>
+        </div>
       )}
 
-      {error && <div className="error-message">{error}</div>}
-      {successMessage && <div className="success-message">{successMessage}</div>}
-
-      <div className="warehouse-layout">
-        <div className="inventory-section">
-          <h3>📦 Current Inventory</h3>
-          {inventory.length > 0 ? (
-            <table className="inventory-table">
-              <thead>
-                <tr>
-                  <th>Item Type</th>
-                  <th>Item ID</th>
-                  <th>Quantity</th>
-                  <th>Last Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inventory.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{item.itemType || "PRODUCT"}</td>
-                    <td>#{item.itemId}</td>
-                    <td className="quantity-cell">{item.quantity}</td>
-                    <td>{item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "N/A"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="info-text">No inventory records yet</p>
-          )}
-        </div>
-
-        <div className="create-order-section">
-          <h3>➕ Create Customer Order</h3>
-          <table className="products-table">
-            <thead>
-              <tr>
-                <th>Product Variant</th>
-                <th>Price</th>
-                <th>Estimated Time</th>
-                <th>Quantity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.length > 0 ? (
-                products.map((product) => (
-                  <tr key={product.id}>
-                    <td>{product.name || "Unknown"}</td>
-                    <td>${(product.price || 0).toFixed(2)}</td>
-                    <td>{product.estimatedTimeMinutes || 0} min</td>
-                    <td>
-                      <input
-                        type="number"
-                        min="0"
-                        value={selectedProducts[product.id] || 0}
-                        onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                        className="quantity-input"
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4">No products available</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {error && (
+        <div className="form-error mb-6 p-4 bg-red-50 border-l-4 border-red-600 rounded">
+          <p className="font-semibold text-red-900">Error</p>
+          <p className="text-red-800 text-sm mt-1">{error}</p>
           <button
-            onClick={handleCreateOrder}
-            disabled={loading}
-            className="primary-button"
+            onClick={() => setError(null)}
+            className="text-red-600 hover:text-red-800 font-semibold text-sm mt-2"
           >
-            {loading ? "Creating Order..." : "Create Order"}
+            Dismiss
           </button>
         </div>
+      )}
 
-        <div className="orders-section">
-          <h3>📋 Recent Orders</h3>
+      {successMessage && (
+        <div className="form-success-details mb-6">
+          <p className="font-semibold text-green-900">Success</p>
+          <p className="text-green-800 text-sm mt-1">{successMessage}</p>
+          <button
+            onClick={() => setSuccessMessage(null)}
+            className="text-green-700 hover:text-green-900 font-semibold text-sm mt-2"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Two Column Section: Create Order (70%) + Current Inventory (30%) */}
+      <div className="two-column-section">
+        {/* Create Customer Order - 70% */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 create-order-box">
+          <div className="bg-blue-50 px-6 py-3 border-b border-blue-200">
+            <h2 className="text-lg font-semibold text-blue-900">➕ Create Customer Order</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="products-table w-full">
+              <thead className="bg-gray-100 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Product Variant</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Est. Time</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Quantity</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {products.length > 0 ? (
+                  products.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name || "Unknown"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${(product.price || 0).toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{product.estimatedTimeMinutes || 0} min</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <input
+                          type="number"
+                          min="0"
+                          value={selectedProducts[product.id] || 0}
+                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded text-center w-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-4 text-center text-gray-500">No products available</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <button
+              onClick={handleCreateOrder}
+              disabled={loading}
+              className="primary-link"
+            >
+              {loading ? "Creating Order..." : "Create Order"}
+            </button>
+          </div>
+        </div>
+
+        {/* Current Inventory - 30% */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 inventory-box">
+          <div className="bg-blue-50 px-6 py-3 border-b border-blue-200">
+            <h2 className="text-lg font-semibold text-blue-900">📦 Current Inventory</h2>
+          </div>
+          <div className="overflow-x-auto flex-grow">
+            {inventory.length > 0 ? (
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Item Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Item ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Qty</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {inventory.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-900">{item.itemType || "PRODUCT"}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-600">#{item.itemId}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-900 font-semibold">{item.quantity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="p-4 text-center text-gray-500">
+                <p className="text-sm">No inventory items</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Orders - 4 Column Grid */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 mb-6">
+        <div className="bg-blue-50 px-6 py-3 border-b border-blue-200 flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-blue-900">📋 Recent Orders</h2>
+          <button 
+            onClick={() => navigate("/orders")}
+            className="primary-link"
+            style={{ marginTop: 0 }}
+          >
+            View All Orders
+          </button>
+        </div>
+        <div className="p-6">
           {Array.isArray(orders) && orders.length > 0 ? (
-            <div className="orders-list">
+            <div className="orders-grid">
               {orders.map((order) => (
-                <div key={order.id} className="order-card">
-                  <div className="order-header">
-                    <div>
-                      <p>
-                        <strong>Order:</strong> {order.orderNumber}
-                      </p>
-                      <p>
-                        <strong>Status:</strong>{" "}
-                        <span className={`status-badge status-${order.status.toLowerCase()}`}>
-                          {order.status}
-                        </span>
-                      </p>
-                      <p>
-                        <strong>Date:</strong> {new Date(order.orderDate).toLocaleDateString()}
-                      </p>
-                      <p>
-                        <strong>Items:</strong> {order.orderItems?.length || 0}
-                      </p>
-                      {order.notes && (
-                        <p>
-                          <strong>Notes:</strong> {order.notes}
-                        </p>
-                      )}
-                    </div>
-                    {order.status === "PENDING" && (
+                <div key={order.id} className="order-box-card">
+                  <div className="order-box-header">
+                    <span className={`order-status-badge status-${order.status.toLowerCase()}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="order-box-body">
+                    <p className="order-number">Order #{order.orderNumber}</p>
+                    {order.orderItems && order.orderItems.length > 0 ? (
+                      <div className="order-items-list">
+                        <p style={{ marginBottom: '0.5rem', fontWeight: '500', color: '#666', fontSize: '0.875rem' }}>Items:</p>
+                        {order.orderItems.map((item, idx) => (
+                          <div key={idx} style={{ fontSize: '0.85rem', marginBottom: '0.25rem', paddingLeft: '1rem', color: '#333' }}>
+                            <span style={{ fontWeight: '600' }}>{item.itemType || item.name || `Item ${idx + 1}`}</span>
+                            <span style={{ color: '#999', margin: '0 0.5rem' }}>—</span>
+                            <span>Qty: <span style={{ color: '#059669', fontWeight: '600' }}>{item.quantity}</span></span>
+                            {item.status && (
+                              <>
+                                <span style={{ color: '#999', margin: '0 0.5rem' }}>|</span>
+                                <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#0b5394' }}>{item.status}</span>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="order-info"><strong>Items:</strong> None</p>
+                    )}
+                    <p className="order-date">{new Date(order.orderDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</p>
+                  </div>
+                  {order.status === "PENDING" && (
+                    <div className="order-box-footer">
                       <button
                         onClick={() => handleFulfillOrder(order.id)}
                         disabled={fulfillingOrderId === order.id}
                         className="fulfill-button"
                       >
-                        {fulfillingOrderId === order.id ? "Processing..." : "Fulfill Order"}
+                        {fulfillingOrderId === order.id ? "Processing..." : "Fulfill"}
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <p className="info-text">No orders found for this workstation</p>
+            <div className="text-center text-gray-500">
+              <p className="text-sm">No orders found for this workstation</p>
+            </div>
           )}
         </div>
       </div>
 
       <style>{`
         .plant-warehouse-page {
-          padding: 20px;
+          padding: 2rem 1rem;
+          max-width: 1400px;
+          margin: 0 auto;
         }
 
-        .warehouse-layout {
+        .page-header {
+          margin-bottom: 2rem;
+        }
+
+        .page-title {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #0b5394;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .page-subtitle {
+          font-size: 1rem;
+          color: #666;
+          margin: 0;
+        }
+
+        /* Two Column Layout: Create Order (70%) + Inventory (30%) */
+        .two-column-section {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          margin-top: 20px;
+          grid-template-columns: 70% 30%;
+          gap: 1.5rem;
+          margin-bottom: 2rem;
         }
 
-        .inventory-section,
-        .create-order-section,
-        .orders-section {
-          background: #f9f9f9;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          padding: 15px;
+        .create-order-box {
+          display: flex;
+          flex-direction: column;
         }
 
-        .inventory-table,
-        .products-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 15px;
-          font-size: 13px;
+        .create-order-box .overflow-x-auto {
+          flex-grow: 1;
+          overflow-y: auto;
+          max-height: 400px;
         }
 
-        .inventory-table th,
-        .products-table th {
-          background: #e8f4f8;
-          padding: 10px;
-          text-align: left;
-          font-weight: bold;
-          border-bottom: 2px solid #b8d4e0;
+        .inventory-box {
+          display: flex;
+          flex-direction: column;
         }
 
-        .inventory-table td,
-        .products-table td {
-          padding: 8px;
-          border-bottom: 1px solid #ddd;
-        }
-
-        .quantity-input {
-          width: 70px;
-          padding: 5px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          text-align: center;
-        }
-
-        .quantity-cell {
-          text-align: center;
-          font-weight: bold;
-          color: #2c5aa0;
-        }
-
-        .primary-button,
-        .fulfill-button {
-          padding: 10px 20px;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: bold;
-          transition: background-color 0.3s;
+        .inventory-box .overflow-x-auto {
+          flex-grow: 1;
+          overflow-y: auto;
+          max-height: 400px;
         }
 
         .primary-button {
-          background: #2c5aa0;
+          padding: 0.75rem 1.5rem;
+          background: #0b5394;
           color: white;
+          border: none;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          font-weight: 600;
+          transition: background 0.3s ease;
           width: 100%;
         }
 
         .primary-button:hover:not(:disabled) {
-          background: #1e3f5a;
+          background: #0a4070;
         }
 
         .primary-button:disabled {
@@ -350,55 +418,74 @@ function PlantWarehousePage() {
           cursor: not-allowed;
         }
 
-        .fulfill-button {
-          background: #28a745;
-          color: white;
-          padding: 8px 15px;
+        .orders-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1rem;
         }
 
-        .fulfill-button:hover:not(:disabled) {
-          background: #218838;
+        .order-box-card {
+          background: linear-gradient(135deg, #f5f7fa 0%, #fff 100%);
+          border: 1px solid #e0e0e0;
+          border-radius: 0.75rem;
+          overflow: hidden;
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
         }
 
-        .fulfill-button:disabled {
-          background: #ccc;
-          cursor: not-allowed;
+        .order-box-card:hover {
+          border-color: #0b5394;
+          box-shadow: 0 4px 12px rgba(11, 83, 148, 0.1);
+          transform: translateY(-2px);
         }
 
-        .order-card {
-          background: white;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          padding: 15px;
-          margin-bottom: 10px;
-        }
-
-        .order-header {
+        .order-box-header {
+          padding: 0.75rem;
+          background: #f0f4f8;
+          border-bottom: 1px solid #e0e0e0;
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
-          gap: 15px;
+          align-items: center;
         }
 
-        .order-header div {
-          flex: 1;
+        .order-box-body {
+          padding: 1rem;
+          flex-grow: 1;
         }
 
-        .order-card p {
-          margin: 5px 0;
-          font-size: 13px;
+        .order-number {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #0b5394;
+          margin: 0 0 0.5rem 0;
         }
 
-        .order-card strong {
-          color: #333;
+        .order-info {
+          font-size: 0.85rem;
+          color: #666;
+          margin: 0.25rem 0;
         }
 
-        .status-badge {
+        .order-date {
+          font-size: 0.8rem;
+          color: #999;
+          margin: 0.5rem 0 0 0;
+        }
+
+        .order-box-footer {
+          padding: 0.75rem;
+          border-top: 1px solid #e0e0e0;
+          background: #fafbfc;
+        }
+
+        .order-status-badge {
           display: inline-block;
-          padding: 3px 8px;
-          border-radius: 3px;
-          font-size: 11px;
-          font-weight: bold;
+          padding: 0.25rem 0.75rem;
+          border-radius: 0.375rem;
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
         }
 
         .status-pending {
@@ -416,27 +503,45 @@ function PlantWarehousePage() {
           color: #0f5132;
         }
 
-        .error-message {
-          background: #f8d7da;
-          color: #721c24;
-          padding: 12px;
-          border-radius: 4px;
-          margin-bottom: 15px;
-          border: 1px solid #f5c6cb;
+        .fulfill-button {
+          width: 100%;
+          padding: 0.5rem;
+          background: #27ae60;
+          color: white;
+          border: none;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 0.85rem;
+          transition: background 0.3s ease;
         }
 
-        .success-message {
-          background: #d4edda;
-          color: #155724;
-          padding: 12px;
-          border-radius: 4px;
-          margin-bottom: 15px;
-          border: 1px solid #c3e6cb;
+        .fulfill-button:hover:not(:disabled) {
+          background: #229954;
         }
 
-        .info-text {
-          color: #666;
-          font-style: italic;
+        .fulfill-button:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+
+        .form-error {
+          background: #fee;
+          color: #c33;
+          border-left: 4px solid #c33;
+        }
+
+        .form-success-details {
+          background: #efe;
+          color: #3c3;
+          border-left: 4px solid #3c3;
+          padding: 1rem;
+          border-radius: 0.5rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .mb-6 {
+          margin-bottom: 1.5rem;
         }
       `}</style>
     </section>

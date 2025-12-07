@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import axios from "axios";
+import "../styles/DashboardStandard.css";
 import "../styles/ControlPages.css";
 
 /**

@@ -18,9 +18,9 @@ class AuthControllerIntegrationTest {
     @Test
     void defaultAdminCredentialsAuthenticateSuccessfully() {
         Authentication result = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken("legoAdmin", "legoPass"));
+            new UsernamePasswordAuthenticationToken("lego_admin", "lego_Pass123"));
 
         assertThat(result.isAuthenticated()).isTrue();
-        assertThat(result.getName()).isEqualTo("legoAdmin");
+        assertThat(result.getName()).isEqualTo("lego_admin");
     }
 }

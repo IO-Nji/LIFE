@@ -27,6 +27,15 @@ public class ProductionControlOrderController {
     }
 
     /**
+     * Get all control orders
+     */
+    @GetMapping
+    public ResponseEntity<List<ProductionControlOrderDTO>> getAllOrders() {
+        List<ProductionControlOrderDTO> orders = productionControlOrderService.getAllOrders();
+        return ResponseEntity.ok(orders);
+    }
+
+    /**
      * Get all control orders for a workstation
      */
     @GetMapping("/workstation/{workstationId}")

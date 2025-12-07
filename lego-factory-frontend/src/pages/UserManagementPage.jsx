@@ -211,91 +211,130 @@ function UserManagementPage() {
 
   return (
     <div className="user-management-landscape">
-      <section className="form-section">
-        <h2>Admin: Create New User</h2>
-        <p className="form-helper">
-          Use your administrator token to add operators for other factory roles.
-        </p>
-        <form className="form-card" onSubmit={handleSubmit} noValidate>
-          <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            name="username"
-            type="text"
-            value={form.username}
-            onChange={handleChange}
-            disabled={submitting}
-            required
-          />
-
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            disabled={submitting}
-            required
-          />
-
-          <label htmlFor="role">Role</label>
-          <select
-            id="role"
-            name="role"
-            value={form.role}
-            onChange={handleChange}
-            disabled={submitting}
-          >
-            {ROLE_OPTIONS.map((role) => (
-              <option key={role} value={role}>
-                {role}
-              </option>
-            ))}
-          </select>
-
-          <label htmlFor="workstationId">Workstation</label>
-          <select
-            id="workstationId"
-            name="workstationId"
-            value={form.workstationId}
-            onChange={handleChange}
-            disabled={submitting}
-          >
-            <option value="">-- None --</option>
-            {workstations.map((ws) => (
-              <option key={ws.id} value={ws.id}>
-                {ws.name}
-              </option>
-            ))}
-          </select>
-
-          <button type="submit" className="primary-link" disabled={submitting}>
-            {submitting ? "Creating..." : "Create user"}
-          </button>
-        </form>
-        {feedback.message && (
-          <p
-            className={feedback.type === "error" ? "form-error" : "form-success"}
-            role={feedback.type === "error" ? "alert" : "status"}
-          >
-            {feedback.message}
+      {/* Two Column Layout: Create User (70%) + Status (30%) */}
+      <div className="user-management-top-section">
+        {/* Create New User - Left Column (70%) */}
+        <section className="form-section create-user-box">
+          <h2>Create New User</h2>
+          <p className="form-helper">
+            Use your administrator token to add operators for other factory roles.
           </p>
-        )}
-        {createdUser && (
-          <div className="form-success-details">
-            <h3>Created User Details:</h3>
-            <ul>
-              <li><strong>ID:</strong> {createdUser.id}</li>
-              <li><strong>Username:</strong> {createdUser.username}</li>
-              <li><strong>Role:</strong> {createdUser.role}</li>
-              {createdUser.workstationId && (
-                <li><strong>Workstation ID:</strong> {createdUser.workstationId}</li>
-              )}
-            </ul>
+          <form className="form-card form-card-grid" onSubmit={handleSubmit} noValidate>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="username">Username</label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  value={form.username}
+                  onChange={handleChange}
+                  disabled={submitting}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  disabled={submitting}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="role">Role</label>
+                <select
+                  id="role"
+                  name="role"
+                  value={form.role}
+                  onChange={handleChange}
+                  disabled={submitting}
+                >
+                  {ROLE_OPTIONS.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="workstationId">Workstation</label>
+                <select
+                  id="workstationId"
+                  name="workstationId"
+                  value={form.workstationId}
+                  onChange={handleChange}
+                  disabled={submitting}
+                >
+                  <option value="">-- None --</option>
+                  {workstations.map((ws) => (
+                    <option key={ws.id} value={ws.id}>
+                      {ws.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" className="primary-link" disabled={submitting}>
+              {submitting ? "Creating..." : "Create user"}
+            </button>
+          </form>
+          {feedback.message && (
+            <p
+              className={feedback.type === "error" ? "form-error" : "form-success"}
+              role={feedback.type === "error" ? "alert" : "status"}
+            >
+              {feedback.message}
+            </p>
+          )}
+          {createdUser && (
+            <div className="form-success-details">
+              <h3>Created User Details:</h3>
+              <ul>
+                <li><strong>ID:</strong> {createdUser.id}</li>
+                <li><strong>Username:</strong> {createdUser.username}</li>
+                <li><strong>Role:</strong> {createdUser.role}</li>
+                {createdUser.workstationId && (
+                  <li><strong>Workstation ID:</strong> {createdUser.workstationId}</li>
+                )}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {/* Users' Status - Right Column (30%) */}
+        <section className="users-status-box">
+          <h2>Users' Status</h2>
+          <div className="status-grid">
+            <div className="status-stat-box">
+              <div className="status-stat-label">Total Users</div>
+              <div className="status-stat-value">{users.length}</div>
+            </div>
+            <div className="status-stat-box">
+              <div className="status-stat-label">Active Users</div>
+              <div className="status-stat-value">{users.filter(u => u.role !== "VIEWER").length}</div>
+            </div>
+            <div className="status-stat-box">
+              <div className="status-stat-label">Admin Accounts</div>
+              <div className="status-stat-value">{users.filter(u => u.role === "ADMIN").length}</div>
+            </div>
+            <div className="status-stat-box">
+              <div className="status-stat-label">Operators</div>
+              <div className="status-stat-value">{users.filter(u => u.role !== "ADMIN" && u.role !== "VIEWER").length}</div>
+            </div>
           </div>
-        )}
-      </section>
+        </section>
+      </div>
 
       <section className="form-section">
         <h2>Manage Existing Users</h2>

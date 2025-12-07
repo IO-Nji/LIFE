@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import "../styles/DashboardStandard.css";
 import "../styles/ControlPages.css";
 
 /**

@@ -3,7 +3,9 @@ import HomePage from "./pages/HomePage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import UserManagementPage from "./pages/UserManagementPage.jsx";
+import WarehouseManagementPage from "./pages/WarehouseManagementPage.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import InventoryManagementPage from "./pages/InventoryManagementPage.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import PlantWarehousePage from "./pages/PlantWarehousePage.jsx";
 import ModulesSupermarketPage from "./pages/ModulesSupermarketPage.jsx";
@@ -50,6 +52,26 @@ function App() {
           element={
             isAdmin ? (
               <UserManagementPage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="warehouses"
+          element={
+            isAdmin ? (
+              <WarehouseManagementPage />
+            ) : (
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
+        <Route
+          path="inventory"
+          element={
+            isAdmin ? (
+              <InventoryManagementPage />
             ) : (
               <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
             )

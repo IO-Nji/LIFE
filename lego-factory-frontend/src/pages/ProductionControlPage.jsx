@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import "../styles/DashboardStandard.css";
 import "../styles/ControlPages.css";
 
 function ProductionControlPage() {
@@ -19,8 +20,8 @@ function ProductionControlPage() {
   useEffect(() => {
     if (workstationId) {
       fetchControlOrders();
-      // Refresh every 10 seconds
-      const interval = setInterval(fetchControlOrders, 10000);
+      // ENHANCED: Refresh every 5 seconds for real-time updates
+      const interval = setInterval(fetchControlOrders, 5000);
       return () => clearInterval(interval);
     }
   }, [workstationId]);

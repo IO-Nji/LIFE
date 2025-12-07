@@ -1,6 +1,7 @@
 package io.life.order.service;
 
 import io.life.order.dto.CustomerOrderDTO;
+import io.life.order.dto.ProductionOrderDTO;
 import io.life.order.entity.CustomerOrder;
 import io.life.order.entity.OrderItem;
 import io.life.order.entity.WarehouseOrder;
@@ -49,13 +50,16 @@ public class FulfillmentService {
     private final CustomerOrderRepository customerOrderRepository;
     private final WarehouseOrderRepository warehouseOrderRepository;
     private final InventoryService inventoryService;
+    private final ProductionOrderService productionOrderService;
 
     public FulfillmentService(CustomerOrderRepository customerOrderRepository,
                             WarehouseOrderRepository warehouseOrderRepository,
-                            InventoryService inventoryService) {
+                            InventoryService inventoryService,
+                            ProductionOrderService productionOrderService) {
         this.customerOrderRepository = customerOrderRepository;
         this.warehouseOrderRepository = warehouseOrderRepository;
         this.inventoryService = inventoryService;
+        this.productionOrderService = productionOrderService;
     }
 
     /**
@@ -120,6 +124,7 @@ public class FulfillmentService {
     /**
      * Scenario 2: Warehouse Order
      * No items available locally. Create a warehouse order for all items.
+     * Also automatically create a production order for the shortfall.
      * Order status changes to PROCESSING.
      */
     private CustomerOrderDTO scenario2_WarehouseOrder(CustomerOrder order) {
@@ -156,9 +161,26 @@ public class FulfillmentService {
         warehouseOrderRepository.save(warehouseOrder);
         logger.info("Created warehouse order {} for customer order {}", warehouseOrder.getWarehouseOrderNumber(), order.getOrderNumber());
 
+        // AUTO-TRIGGER: Create production order for shortfall (all items not available locally)
+        logger.info("Auto-triggering production order for Scenario 2 shortfall");
+        try {
+            ProductionOrderDTO productionOrder = productionOrderService.createProductionOrderFromWarehouse(
+                    order.getId(),                              // sourceCustomerOrderId
+                    warehouseOrder.getId(),                     // sourceWarehouseOrderId
+                    "NORMAL",                                   // priority (default)
+                    LocalDateTime.now().plusDays(7),             // dueDate (7 days from now)
+                    "Auto-created for warehouse order " + warehouseOrder.getWarehouseOrderNumber(),
+                    order.getWorkstationId(),                    // createdByWorkstationId
+                    MODULES_SUPERMARKET_WORKSTATION_ID           // assignedWorkstationId (Modules Supermarket)
+            );
+            logger.info("Production order {} auto-created for Scenario 2 shortfall", productionOrder.getProductionOrderNumber());
+        } catch (Exception e) {
+            logger.error("Failed to auto-create production order for Scenario 2", e);
+        }
+
         // Update customer order status
         order.setStatus("PROCESSING");
-        order.setNotes((order.getNotes() != null ? order.getNotes() + " | " : "") + "Scenario 2: Warehouse order " + warehouseOrder.getWarehouseOrderNumber() + " created");
+        order.setNotes((order.getNotes() != null ? order.getNotes() + " | " : "") + "Scenario 2: Warehouse order " + warehouseOrder.getWarehouseOrderNumber() + " created + Production order auto-triggered");
 
         return mapToDTO(customerOrderRepository.save(order));
     }
@@ -167,6 +189,7 @@ public class FulfillmentService {
      * Scenario 3: Modules Supermarket
      * Some items available locally, others need to come from Modules Supermarket.
      * Fulfill what's available, request missing items via warehouse order.
+     * Auto-trigger production order for items not in Modules Supermarket.
      */
     private CustomerOrderDTO scenario3_ModulesSupermarket(CustomerOrder order) {
         logger.info("Scenario 3: Modules Supermarket for order {}", order.getOrderNumber());
@@ -209,12 +232,29 @@ public class FulfillmentService {
             warehouseOrder.setWarehouseOrderItems(warehouseOrderItems);
             warehouseOrderRepository.save(warehouseOrder);
             logger.info("Created warehouse order {} for customer order {}", warehouseOrder.getWarehouseOrderNumber(), order.getOrderNumber());
+
+            // AUTO-TRIGGER: Create production order for items not available in warehouse/modules supermarket
+            logger.info("Auto-triggering production order for Scenario 3 shortfall items");
+            try {
+                ProductionOrderDTO productionOrder = productionOrderService.createProductionOrderFromWarehouse(
+                        order.getId(),                              // sourceCustomerOrderId
+                        warehouseOrder.getId(),                     // sourceWarehouseOrderId
+                        "NORMAL",                                   // priority (default)
+                        LocalDateTime.now().plusDays(7),             // dueDate (7 days from now)
+                        "Auto-created for warehouse order " + warehouseOrder.getWarehouseOrderNumber() + " (Scenario 3 shortfall)",
+                        order.getWorkstationId(),                    // createdByWorkstationId
+                        MODULES_SUPERMARKET_WORKSTATION_ID           // assignedWorkstationId (Modules Supermarket)
+                );
+                logger.info("Production order {} auto-created for Scenario 3 shortfall items", productionOrder.getProductionOrderNumber());
+            } catch (Exception e) {
+                logger.error("Failed to auto-create production order for Scenario 3", e);
+            }
         }
 
         order.setStatus("PROCESSING");
         String notes = "Scenario 3: Partial fulfillment from local + Modules Supermarket";
         if (!warehouseOrderItems.isEmpty()) {
-            notes += " (warehouse order: " + warehouseOrder.getWarehouseOrderNumber() + ")";
+            notes += " (warehouse order: " + warehouseOrder.getWarehouseOrderNumber() + " + Production order auto-triggered)";
         }
         order.setNotes((order.getNotes() != null ? order.getNotes() + " | " : "") + notes);
 

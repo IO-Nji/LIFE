@@ -89,6 +89,15 @@ public class ProductionControlOrderService {
     }
 
     /**
+     * Get all control orders.
+     */
+    public List<ProductionControlOrderDTO> getAllOrders() {
+        return repository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Get all control orders for a workstation.
      */
     public List<ProductionControlOrderDTO> getOrdersByWorkstation(Long workstationId) {

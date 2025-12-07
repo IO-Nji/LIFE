@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import "../styles/DashboardStandard.css";
 
 function ModulesSupermarketPage() {
   const { session } = useAuth();
@@ -12,6 +13,7 @@ function ModulesSupermarketPage() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const [fulfillmentInProgress, setFulfillmentInProgress] = useState({});
+  const [selectedModule, setSelectedModule] = useState(null);
 
   useEffect(() => {
     if (session?.user?.workstationId) {
@@ -151,11 +153,11 @@ function ModulesSupermarketPage() {
   };
 
   return (
-    <section>
+    <section className="modules-supermarket-page">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-blue-700 mb-2">Modules Supermarket</h1>
-        <p className="text-gray-600">Manage incoming warehouse orders for module fulfillment</p>
+      <div className="page-header">
+        <h1 className="page-title">🏢 Modules Supermarket</h1>
+        <p className="page-subtitle">Manage incoming warehouse orders for module fulfillment</p>
       </div>
 
         {/* Messages */}
@@ -185,6 +187,35 @@ function ModulesSupermarketPage() {
           </div>
         )}
 
+        {/* Order Summary - Grid Layout */}
+        <div className="order-summary-container">
+          <h2 className="summary-title">Order Summary</h2>
+          <div className="order-summary-grid">
+            <div className="summary-stat-box">
+              <div className="stat-box-label">Total Orders</div>
+              <div className="stat-box-value total">{warehouseOrders.length}</div>
+            </div>
+            <div className="summary-stat-box">
+              <div className="stat-box-label">Pending</div>
+              <div className="stat-box-value pending">
+                {warehouseOrders.filter(o => o.status === "PENDING").length}
+              </div>
+            </div>
+            <div className="summary-stat-box">
+              <div className="stat-box-label">Processing</div>
+              <div className="stat-box-value processing">
+                {warehouseOrders.filter(o => o.status === "PROCESSING").length}
+              </div>
+            </div>
+            <div className="summary-stat-box">
+              <div className="stat-box-label">Fulfilled</div>
+              <div className="stat-box-value fulfilled">
+                {warehouseOrders.filter(o => o.status === "FULFILLED").length}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Current Inventory */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 mb-6">
           <div className="bg-blue-50 px-6 py-3 border-b border-blue-200">
@@ -207,7 +238,11 @@ function ModulesSupermarketPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {inventory.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <tr 
+                      key={index} 
+                      className="hover:bg-blue-50 cursor-pointer transition"
+                      onClick={() => setSelectedModule(item)}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.itemType}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{item.itemId}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{item.quantity}</td>
@@ -339,48 +374,83 @@ function ModulesSupermarketPage() {
           )}
         </div>
 
-        {/* Summary Stats and Info Boxes */}
-        <div style={{ display: "flex", gap: "2rem", marginTop: "2rem" }}>
-          {/* Summary Stats */}
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200" style={{ flex: 1 }}>
-            <h3 className="text-lg font-bold text-gray-900 mb-6 uppercase tracking-wide">Order Summary</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "1rem", borderBottom: "1px solid #e5e7eb" }}>
-                <p className="text-gray-600 text-sm font-bold uppercase tracking-wider">Total Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{warehouseOrders.length}</p>
+        {/* Information Box */}
+        <div className="bg-blue-50 border-l-4 border-blue-600 rounded p-6">
+          <h3 className="font-bold text-blue-900 text-base mb-4">About Warehouse Orders</h3>
+          <ul className="space-y-2 text-blue-800 text-sm">
+            <li><strong>SCENARIO_2:</strong> Plant Warehouse has no stock, requesting all items from Modules Supermarket</li>
+            <li><strong>SCENARIO_3:</strong> Plant Warehouse has partial stock, requesting remaining items from Modules Supermarket</li>
+            <li>Click <strong>Fulfill</strong> to complete the warehouse order and deduct stock from inventory</li>
+            <li>Orders are automatically fetched every 30 seconds for real-time updates</li>
+            <li>Click on any <strong>inventory item</strong> in the Current Inventory table to view detailed module information</li>
+          </ul>
+        </div>
+
+        {/* Module Details Modal */}
+        {selectedModule && (
+          <div className="modal-overlay" onClick={() => setSelectedModule(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2 className="modal-title">Module Details</h2>
+                <button 
+                  className="modal-close"
+                  onClick={() => setSelectedModule(null)}
+                >
+                  ×
+                </button>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "1rem", borderBottom: "1px solid #e5e7eb" }}>
-                <p className="text-yellow-700 text-sm font-bold uppercase tracking-wider">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {warehouseOrders.filter(o => o.status === "PENDING").length}
-                </p>
+              <div className="modal-body">
+                <div className="detail-section">
+                  <div className="detail-group">
+                    <label className="detail-label">Item Type</label>
+                    <p className="detail-value">{selectedModule.itemType}</p>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Item ID</label>
+                    <p className="detail-value">{selectedModule.itemId}</p>
+                  </div>
+                </div>
+
+                <div className="detail-section">
+                  <div className="detail-group">
+                    <label className="detail-label">Stock Level</label>
+                    <p className="detail-value" style={{ 
+                      fontSize: "1.5rem", 
+                      fontWeight: "bold",
+                      color: selectedModule.quantity > 0 ? "#27ae60" : "#e74c3c"
+                    }}>
+                      {selectedModule.quantity} units
+                    </p>
+                  </div>
+                </div>
+
+                {selectedModule.description && (
+                  <div className="detail-section">
+                    <div className="detail-group">
+                      <label className="detail-label">Description</label>
+                      <p className="detail-value">{selectedModule.description}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="detail-section">
+                  <div className="detail-group">
+                    <label className="detail-label">Last Updated</label>
+                    <p className="detail-value">{new Date(selectedModule.updatedAt).toLocaleString()}</p>
+                  </div>
+                </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "1rem", borderBottom: "1px solid #e5e7eb" }}>
-                <p className="text-blue-700 text-sm font-bold uppercase tracking-wider">Processing</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {warehouseOrders.filter(o => o.status === "PROCESSING").length}
-                </p>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p className="text-green-700 text-sm font-bold uppercase tracking-wider">Fulfilled</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {warehouseOrders.filter(o => o.status === "FULFILLED").length}
-                </p>
+              <div className="modal-footer">
+                <button 
+                  className="secondary-button"
+                  onClick={() => setSelectedModule(null)}
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
-
-          {/* Information Box */}
-          <div className="bg-blue-50 border-l-4 border-blue-600 rounded p-6" style={{ flex: 1 }}>
-            <h3 className="font-bold text-blue-900 text-base mb-4">About Warehouse Orders</h3>
-            <ul className="space-y-2 text-blue-800 text-sm">
-              <li><strong>SCENARIO_2:</strong> Plant Warehouse has no stock, requesting all items from Modules Supermarket</li>
-              <li><strong>SCENARIO_3:</strong> Plant Warehouse has partial stock, requesting remaining items from Modules Supermarket</li>
-              <li>Click <strong>Fulfill</strong> to complete the warehouse order and deduct stock from inventory</li>
-              <li>Orders are automatically fetched every 30 seconds for real-time updates</li>
-            </ul>
-          </div>
-        </div>
+        )}
     </section>
   );
 }
