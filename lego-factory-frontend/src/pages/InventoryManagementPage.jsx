@@ -250,35 +250,36 @@ function InventoryManagementPage() {
                   <tr>
                     <th>Workstation</th>
                     <th>Item Type</th>
-                  <th>Item ID</th>
-                  <th>Current Qty</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lowStockItems.map((item, idx) => (
-                  <tr key={idx} className="low-stock-row">
-                    <td>{item.workstationName}</td>
-                    <td>{item.itemType}</td>
-                    <td>#{item.itemId}</td>
-                    <td>
-                      <span className="quantity-badge low">{item.quantity}</span>
-                    </td>
-                    <td>
-                      <button
-                        className="primary-link"
-                        onClick={() => {
-                          setSelectedWorkstationId(item.workstationId);
-                          setActiveTab("manage");
-                        }}
-                      >
-                        Update Stock
-                      </button>
-                    </td>
+                    <th>Item ID</th>
+                    <th>Current Qty</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {lowStockItems.map((item, idx) => (
+                    <tr key={idx} className="low-stock-row">
+                      <td>{item.workstationName}</td>
+                      <td>{item.itemType}</td>
+                      <td>#{item.itemId}</td>
+                      <td>
+                        <span className="quantity-badge low">{item.quantity}</span>
+                      </td>
+                      <td>
+                        <button
+                          className="primary-link"
+                          onClick={() => {
+                            setSelectedWorkstationId(item.workstationId);
+                            setActiveTab("manage");
+                          }}
+                        >
+                          Update Stock
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
