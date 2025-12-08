@@ -19,7 +19,7 @@ services:
   # React Frontend with Nginx
   frontend:
     build:
-      context: ../lego-factory-frontend
+      context: ./lego-factory-frontend
       dockerfile: Dockerfile
     container_name: lego-frontend
     expose:
@@ -31,7 +31,7 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ./api-gateway
+      context: ./lego-factory-backend/api-gateway
       dockerfile: Dockerfile
     container_name: lego-api-gateway
     expose:
@@ -49,7 +49,7 @@ services:
   # User Service (PostgreSQL)
   user-service:
     build:
-      context: ./user-service
+      context: ./lego-factory-backend/user-service
       dockerfile: Dockerfile
     container_name: lego-user-service
     expose:
@@ -67,7 +67,7 @@ services:
   # Masterdata Service (H2)
   masterdata-service:
     build:
-      context: ./masterdata-service
+      context: ./lego-factory-backend/masterdata-service
       dockerfile: Dockerfile
     container_name: lego-masterdata-service
     expose:
@@ -81,7 +81,7 @@ services:
   # Inventory Service (H2)
   inventory-service:
     build:
-      context: ./inventory-service
+      context: ./lego-factory-backend/inventory-service
       dockerfile: Dockerfile
     container_name: lego-inventory-service
     expose:
@@ -95,7 +95,7 @@ services:
   # Order Processing Service (H2)
   order-processing-service:
     build:
-      context: ./order-processing-service
+      context: ./lego-factory-backend/order-processing-service
       dockerfile: Dockerfile
     container_name: lego-order-processing-service
     expose:
@@ -109,7 +109,7 @@ services:
   # Simal Integration Service (H2)
   simal-integration-service:
     build:
-      context: ./simal-integration-service
+      context: ./lego-factory-backend/simal-integration-service
       dockerfile: Dockerfile
     container_name: lego-simal-integration-service
     expose:

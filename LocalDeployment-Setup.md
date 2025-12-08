@@ -468,6 +468,22 @@ This phase prepares your Ubuntu server to receive and run your Dockerized applic
         cd /opt/lego-factory-app
         git clone http://<YOUR_SERVER_LOCAL_IP>/root/lego-factory-app.git .
         ```
+    *   **Fix project structure** - move files to correct location:
+        ```bash
+        # If cloned with LIFE subdirectory, move contents up one level
+        if [ -d "LIFE" ]; then
+            mv LIFE/* . 2>/dev/null || true
+            mv LIFE/.* . 2>/dev/null || true
+            rmdir LIFE
+        fi
+        
+        # Ensure docker-compose.yml is in the root with the services
+        if [ ! -f "docker-compose.yml" ]; then
+            if [ -f "lego-factory-backend/docker-compose.yml" ]; then
+                mv lego-factory-backend/docker-compose.yml .
+            fi
+        fi
+        ```
     *   Create the environment file manually for initial setup:
         ```bash
         cat > .env << EOF
@@ -480,12 +496,28 @@ EOF
         ```bash
         chmod 600 .env
         ```
+    *   **Verify structure** before building:
+        ```bash
+        # Should see docker-compose.yml and service directories at same level
+        ls -la
+        # Should show: docker-compose.yml, api-gateway/, user-service/, etc.
+        ```
 
 2.  **Initial Manual Build and Deploy:**
-    *   Build all Docker images locally on the server (as deployuser):
+    *   Verify you're in the correct directory with docker-compose.yml:
         ```bash
         cd /opt/lego-factory-app
+        pwd  # Should show /opt/lego-factory-app
+        ls docker-compose.yml  # Should exist
+        ```
+    *   Build all Docker images locally on the server (as deployuser):
+        ```bash
         docker-compose build --no-cache
+        ```
+    *   If build fails due to missing service directories, check structure:
+        ```bash
+        ls -la  # Verify service directories are present
+        # Expected: api-gateway/ user-service/ masterdata-service/ etc.
         ```
     *   Start the application stack:
         ```bash
@@ -609,6 +641,40 @@ EOF
         ```bash
         docker network ls
         docker network inspect lego-factory-backend_app-network
+        ```
+    *   **Docker-compose file not found:**
+        ```bash
+        # Check current directory and files
+        pwd
+        ls -la docker-compose.yml
+        
+        # If in wrong directory, navigate to correct one
+        cd /opt/lego-factory-app
+        
+        # If docker-compose.yml is in subdirectory, move it
+        find . -name "docker-compose.yml" -type f
+        ```
+    *   **Service directories not found during build:**
+        ```bash
+        # Verify all service directories exist at same level as docker-compose.yml
+        ls -la | grep -E "(api-gateway|user-service|masterdata-service|inventory-service|order-processing-service|simal-integration-service)"
+        
+        # Check if services are in subdirectory
+        find . -name "api-gateway" -type d
+        ```
+    *   **Project structure issues:**
+        ```bash
+        # If services are in lego-factory-backend subdirectory
+        if [ -d "lego-factory-backend" ]; then
+            echo "Moving backend services to root level"
+            mv lego-factory-backend/* . 2>/dev/null || true
+            rmdir lego-factory-backend
+        fi
+        
+        # If frontend is in subdirectory
+        if [ ! -d "lego-factory-frontend" ] && [ -d "frontend" ]; then
+            mv frontend lego-factory-frontend
+        fi
         ```
 
 8.  **Verify CI/CD Integration:**
