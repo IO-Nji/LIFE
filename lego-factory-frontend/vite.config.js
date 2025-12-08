@@ -8,10 +8,31 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: 'http://localhost:8011',
+        target: 'http://localhost:8011', // Your API Gateway port
         changeOrigin: true,
-        rewrite: (path) => path,
+        secure: false,
+        // Remove the rewrite to keep /api prefix
+        // rewrite: (path) => path,
       }
     }
+  },
+  // Production build configuration
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom']
+        }
+      }
+    }
+  },
+  // Ensure relative paths work in production
+  base: '/',
+  // Define environment variables for build
+  define: {
+    __API_BASE__: JSON.stringify('/api')
   }
 });

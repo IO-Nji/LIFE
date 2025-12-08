@@ -36,6 +36,7 @@ logs/
 # Environment files
 .env
 .env.local
+lego-factory-backend/.env
 
 # Database files
 data/

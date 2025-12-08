@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? 'http://localhost:8011';
+// Use relative path for production deployment via Nginx proxy
+// In development, Vite proxy will handle the /api routing
+const API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL ?? '/api';
 
 const api = axios.create({
   baseURL: API_GATEWAY_URL,

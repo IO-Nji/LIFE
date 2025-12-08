@@ -1,0 +1,127 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  # DOCKER_DRIVER: overlay2 # Optional, for Docker in Docker
+  # DOCKER_TLS_CERTDIR: ""  # Optional, for Docker in Docker
+  # CI_DEBUG_TRACE: "true" # Uncomment for debugging pipeline issues
+
+.build_backend_template: &build_backend_definition
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - echo "Building $SERVICE_NAME backend image..."
+    - docker build -t $CI_REGISTRY_IMAGE/backend/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA $BUILD_CONTEXT
+    - docker push $CI_REGISTRY_IMAGE/backend/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
+  tags:
+    - docker
+
+.build_frontend_template: &build_frontend_definition
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - echo "Building frontend image..."
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA $BUILD_CONTEXT
+    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
+  tags:
+    - docker
+
+# Backend Service Build Jobs
+build_api_gateway:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: api-gateway
+    BUILD_CONTEXT: ./api-gateway
+
+build_user_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: user-service
+    BUILD_CONTEXT: ./user-service
+
+build_masterdata_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: masterdata-service
+    BUILD_CONTEXT: ./masterdata-service
+
+build_inventory_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: inventory-service
+    BUILD_CONTEXT: ./inventory-service
+
+build_order_processing_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: order-processing-service
+    BUILD_CONTEXT: ./order-processing-service
+
+build_simal_integration_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: simal-integration-service
+    BUILD_CONTEXT: ./simal-integration-service
+
+# Frontend Build Job
+build_frontend:
+  <<: *build_frontend_definition
+  stage: build
+  variables:
+    BUILD_CONTEXT: ../lego-factory-frontend
+
+# Deployment Job
+deploy_app:
+  stage: deploy
+  image: alpine/git
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - ssh ${SERVER_USER}@${SERVER_IP} "
+        mkdir -p ${PROJECT_PATH_ON_SERVER} && 
+        cd ${PROJECT_PATH_ON_SERVER} && 
+        docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY && 
+        git init && 
+        git remote add origin $CI_REPOSITORY_URL || true && 
+        git fetch origin $CI_COMMIT_BRANCH && 
+        git reset --hard origin/$CI_COMMIT_BRANCH && 
+        echo 'POSTGRES_USER=$POSTGRES_USER' > .env && 
+        echo 'POSTGRES_PASSWORD=$POSTGRES_PASSWORD' >> .env && 
+        echo 'JWT_SECRET=$JWT_SECRET' >> .env && 
+        docker-compose pull && 
+        docker-compose up -d --remove-orphans
+      "
+  environment:
+    name: local-dev
+    url: http://${SERVER_IP}
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  tags:
+    - deploy
+  dependencies:
+    - build_api_gateway
+    - build_user_service
+    - build_masterdata_service
+    - build_inventory_service
+    - build_order_processing_service
+    - build_simal_integration_service
+    - build_frontend
