@@ -162,3 +162,5 @@ docs/USERS_READY.md
 user-service/data/user_service_db.mv.db
 masterdata-service/data/masterdata_db.mv.db
 docs/TEST_DATA_INITIALIZATION.sql
+Deployment_Local
+CI-CD-Setup.md
