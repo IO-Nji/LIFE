@@ -1,0 +1,166 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+# Frontend Build Template
+.build_frontend_template: &build_frontend_definition
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - echo "Building frontend image..."
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA ./lego-factory-frontend
+    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/frontend:latest
+    - docker push $CI_REGISTRY_IMAGE/frontend:latest
+  tags:
+    - docker
+
+# Backend Build Template  
+.build_backend_template: &build_backend_definition
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - echo "Building $SERVICE_NAME backend service..."
+    - docker build -t $CI_REGISTRY_IMAGE/backend/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA ./lego-factory-backend/$SERVICE_NAME
+    - docker push $CI_REGISTRY_IMAGE/backend/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/backend/$SERVICE_NAME:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/backend/$SERVICE_NAME:latest
+    - docker push $CI_REGISTRY_IMAGE/backend/$SERVICE_NAME:latest
+  tags:
+    - docker
+
+# Frontend Build Job
+build_frontend:
+  <<: *build_frontend_definition
+  stage: build
+
+# Backend Service Build Jobs
+build_api_gateway:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: api-gateway
+
+build_user_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: user-service
+
+build_masterdata_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: masterdata-service
+
+build_inventory_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: inventory-service
+
+build_order_processing_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: order-processing-service
+
+build_simal_integration_service:
+  <<: *build_backend_definition
+  stage: build
+  variables:
+    SERVICE_NAME: simal-integration-service
+
+# Backend Deployment Job
+deploy_backend:
+  stage: deploy
+  image: alpine/git
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - ssh ${SERVER_USER}@${SERVER_IP} "
+        mkdir -p ${PROJECT_PATH_ON_SERVER}/lego-factory-backend && \
+        cd ${PROJECT_PATH_ON_SERVER}/lego-factory-backend && \
+        docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY && \
+        git init && \
+        git remote add origin $CI_REPOSITORY_URL || true && \
+        git fetch origin $CI_COMMIT_BRANCH && \
+        git reset --hard origin/$CI_COMMIT_BRANCH && \
+        cd lego-factory-backend && \
+        echo 'POSTGRES_DB=$POSTGRES_DB' > .env && \
+        echo 'POSTGRES_USER=$POSTGRES_USER' >> .env && \
+        echo 'POSTGRES_PASSWORD=$POSTGRES_PASSWORD' >> .env && \
+        echo 'JWT_SECRET=$JWT_SECRET' >> .env && \
+        echo 'SPRING_PROFILES_ACTIVE=docker' >> .env && \
+        echo 'FRONTEND_URL=$FRONTEND_URL' >> .env && \
+        echo 'SIMAL_API_URL=$SIMAL_API_URL' >> .env && \
+        echo 'SIMAL_API_TIMEOUT=30s' >> .env && \
+        echo 'SIMAL_RETRY_ATTEMPTS=3' >> .env && \
+        docker-compose pull && \
+        docker-compose up -d --remove-orphans
+      "
+  environment:
+    name: backend-production
+    url: http://${SERVER_IP}:8080
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  dependencies:
+    - build_api_gateway
+    - build_user_service
+    - build_masterdata_service
+    - build_inventory_service
+    - build_order_processing_service
+    - build_simal_integration_service
+  tags:
+    - deploy
+
+# Frontend Deployment Job
+deploy_frontend:
+  stage: deploy
+  image: alpine/git
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - ssh ${SERVER_USER}@${SERVER_IP} "
+        mkdir -p ${PROJECT_PATH_ON_SERVER}/lego-factory-frontend && \
+        cd ${PROJECT_PATH_ON_SERVER}/lego-factory-frontend && \
+        docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY && \
+        docker pull $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA && \
+        docker stop lego-frontend || true && \
+        docker rm lego-frontend || true && \
+        docker run -d --name lego-frontend -p 80:80 \
+          -e NODE_ENV=production \
+          --network lego-backend \
+          $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
+      "
+  environment:
+    name: frontend-production
+    url: http://${SERVER_IP}
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  dependencies:
+    - build_frontend
+    - deploy_backend
+  tags:
+    - deploy

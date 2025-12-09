@@ -3,85 +3,115 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      default-filters:
-        # Remove hop-by-hop headers explicitly; filter name changed in Spring Cloud 2024
-        - RemoveRequestHeader=connection
-        - RemoveRequestHeader=keep-alive
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:5173"
-              - "http://localhost:5174"
-              - "http://127.0.0.1:5173"
-              - "http://127.0.0.1:5174"
-            allowedMethods:
-              - "GET"
-              - "POST"
-              - "PUT"
-              - "DELETE"
-              - "OPTIONS"
-              - "PATCH"
-              - "HEAD"
-            allowedHeaders:
-              - "*"
-            maxAge: 3600
-            allowCredentials: true
       routes:
-        - id: user-service-auth
-          uri: ${USER_SERVICE_URI:http://localhost:8012}
-          predicates:
-            - Path=/api/auth/**
-        - id: user-service-users
-          uri: ${USER_SERVICE_URI:http://localhost:8012}
+        # User Service Routes
+        - id: users_route
+          uri: lb://user-service
           predicates:
             - Path=/api/users/**
-        - id: masterdata-service
-          uri: ${MASTERDATA_SERVICE_URI:http://localhost:8013}
+        - id: auth_route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**
+            
+        # Masterdata Service Routes
+        - id: masterdata_route
+          uri: lb://masterdata-service
           predicates:
             - Path=/api/masterdata/**
-        - id: inventory-service
-          uri: ${INVENTORY_SERVICE_URI:http://localhost:8014}
+        - id: workstations_route
+          uri: lb://masterdata-service
+          predicates:
+            - Path=/api/workstations/**
+        - id: products_route
+          uri: lb://masterdata-service
+          predicates:
+            - Path=/api/products/**
+            
+        # Inventory Service Routes
+        - id: inventory_route
+          uri: lb://inventory-service
+          predicates:
+            - Path=/api/inventory/**
+        - id: stock_route
+          uri: lb://inventory-service
           predicates:
             - Path=/api/stock/**
-        - id: order-processing-service
-          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+            
+        # Order Processing Service Routes (Multi-domain)
+        - id: customer_orders_route
+          uri: lb://order-processing-service
           predicates:
             - Path=/api/customer-orders/**
-        - id: order-processing-service-warehouse
-          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+        - id: warehouse_orders_route
+          uri: lb://order-processing-service
           predicates:
             - Path=/api/warehouse-orders/**
-        - id: order-processing-service-production
-          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+        - id: production_orders_route
+          uri: lb://order-processing-service
           predicates:
             - Path=/api/production-orders/**
-        - id: order-processing-service-planning
-          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+        - id: production_planning_route
+          uri: lb://order-processing-service
           predicates:
             - Path=/api/production-planning/**
-        - id: order-processing-service-production-control
-          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+        - id: production_control_route
+          uri: lb://order-processing-service
           predicates:
             - Path=/api/production-control-orders/**
-        - id: order-processing-service-assembly-control
-          uri: ${ORDER_PROCESSING_SERVICE_URI:http://localhost:8015}
+        - id: assembly_control_route
+          uri: lb://order-processing-service
           predicates:
             - Path=/api/assembly-control-orders/**
-        - id: simal-integration-service
-          uri: ${SIMAL_INTEGRATION_SERVICE_URI:http://localhost:8016}
+            
+        # SIMAL Integration Service Routes
+        - id: simal_route
+          uri: lb://simal-integration-service
           predicates:
             - Path=/api/simal/**
-server:
-  port: 8011
 
+      # Global CORS Configuration for Frontend Integration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:5173"
+              - "http://localhost:5174"
+              - "${FRONTEND_URL:http://localhost}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+server:
+  port: 8080
+
+# Load Balancer Configuration
+eureka:
+  client:
+    enabled: false
+
+# Actuator Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
 
-security:
-  jwt:
-    secret: ${SECURITY_JWT_SECRET:ad4c8c63e0f74d7a9f1af99f0ffeb4dfc144b9edfd2a4b0c8c6c98ab7e4f2b3d}
+# Logging Configuration
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.cors: DEBUG
+    com.lego.factory.gateway: DEBUG

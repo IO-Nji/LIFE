@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lego-backend
+
+  user-service:
+    image: ${CI_REGISTRY_IMAGE}/backend/user-service:${CI_COMMIT_SHORT_SHA:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - postgres-db
+    networks:
+      - lego-backend
+
+  masterdata-service:
+    image: ${CI_REGISTRY_IMAGE}/backend/masterdata-service:${CI_COMMIT_SHORT_SHA:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+    volumes:
+      - masterdata_data:/app/data
+    networks:
+      - lego-backend
+
+  inventory-service:
+    image: ${CI_REGISTRY_IMAGE}/backend/inventory-service:${CI_COMMIT_SHORT_SHA:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+    volumes:
+      - inventory_data:/app/data
+    networks:
+      - lego-backend
+
+  order-processing-service:
+    image: ${CI_REGISTRY_IMAGE}/backend/order-processing-service:${CI_COMMIT_SHORT_SHA:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+    volumes:
+      - orders_data:/app/data
+    networks:
+      - lego-backend
+
+  simal-integration-service:
+    image: ${CI_REGISTRY_IMAGE}/backend/simal-integration-service:${CI_COMMIT_SHORT_SHA:-latest}
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SIMAL_API_URL: ${SIMAL_API_URL}
+    volumes:
+      - simal_data:/app/data
+    networks:
+      - lego-backend
+
+  api-gateway:
+    image: ${CI_REGISTRY_IMAGE}/backend/api-gateway:${CI_COMMIT_SHORT_SHA:-latest}
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FRONTEND_URL: ${FRONTEND_URL}
+    depends_on:
+      - user-service
+      - masterdata-service
+      - inventory-service
+      - order-processing-service
+      - simal-integration-service
+    networks:
+      - lego-backend
+
+networks:
+  lego-backend:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  masterdata_data:
+  inventory_data:
+  orders_data:
+  simal_data:
