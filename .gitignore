@@ -1,1 +1,124 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+*.code-workspace
+
+# Build and compiled files
+target/
+build/
+out/
+*.jar
+*.war
+*.ear
+*.class
+*.original
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Gradle
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+
+# Logs
+*.log
+logs/
+*.log.*
+*.out
+*.err
+application.log
+spring.log
+
+# Temporary files
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+*.bak
+*.backup
+*.cache
+*.pid
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Node.js (Frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm
+.yarn-integrity
+*.tsbuildinfo
+.eslintcache
+
+# Frontend build artifacts
+dist/
+build/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Docker
+.docker/
+*.dockerignore
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+h2/
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Package files
+*.tgz
+*.zip
+*.tar.gz
+*.rar
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Spring Boot specific
+HELP.md
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Specific exclusions from previous config
 lego-factory-backend/user-service/pomCheck.yml
