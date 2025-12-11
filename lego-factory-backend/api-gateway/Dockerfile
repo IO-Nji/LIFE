@@ -1,27 +1,23 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /app
 
 # Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl
 
-# Copy Maven files
-COPY pom.xml .
+# Copy Maven wrapper and project files
+COPY mvnw ./
+RUN chmod +x mvnw
+COPY .mvn/ .mvn/
+COPY pom.xml ./
 COPY src ./src
 
-# Install Maven and build
-RUN apt-get update && apt-get install -y maven && \
-    mvn clean package -DskipTests && \
-    apt-get remove -y maven && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+# Build application using Maven wrapper
+RUN ./mvnw clean package -DskipTests
 
-# Expose port
 EXPOSE 8080
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
-# Run application
-CMD ["java", "-jar", "target/api-gateway-*.jar"]
+CMD ["java", "-jar", "target/api-gateway-0.0.1-SNAPSHOT.jar"]
