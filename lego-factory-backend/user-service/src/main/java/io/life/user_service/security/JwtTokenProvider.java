@@ -73,10 +73,10 @@ public class JwtTokenProvider {
     }
 
     private Jws<Claims> parseClaims(String token) {
-        return Jwts.parserBuilder()
-            .setSigningKey(signingKey)
+        return Jwts.parser()
+            .verifyWith(signingKey)
             .build()
-            .parseClaimsJws(token);
+            .parseSignedClaims(token);
     }
 
     public record JwtToken(String token, Instant expiresAt) {

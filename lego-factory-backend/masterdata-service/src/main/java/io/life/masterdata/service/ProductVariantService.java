@@ -21,14 +21,17 @@ public class ProductVariantService {
         return repository.findAll();
     }
 
+    @SuppressWarnings("null")
     public Optional<ProductVariant> findById(Long id) {
         return repository.findById(id);
     }
 
+    @SuppressWarnings("null")
     public ProductVariant save(ProductVariant variant) {
         return repository.save(variant);
     }
 
+    @SuppressWarnings("null")
     public void deleteById(Long id) {
         repository.deleteById(id);
     }

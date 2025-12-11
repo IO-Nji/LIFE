@@ -21,14 +21,17 @@ public class ModuleService {
         return repository.findAll();
     }
 
+    @SuppressWarnings("null")
     public Optional<Module> findById(Long id) {
         return repository.findById(id);
     }
 
+    @SuppressWarnings("null")
     public Module save(Module module) {
         return repository.save(module);
     }
 
+    @SuppressWarnings("null")
     public void deleteById(Long id) {
         repository.deleteById(id);
     }

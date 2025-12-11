@@ -26,6 +26,7 @@ public class WorkstationService {
 				.collect(Collectors.toList());
 	}
 
+	@SuppressWarnings("null")
 	public WorkstationDto findById(Long id) {
 		return repository.findById(id)
 				.map(this::toDto)
@@ -48,6 +49,7 @@ public class WorkstationService {
 		return toDto(saved);
 	}
 
+	@SuppressWarnings("null")
 	public void deleteById(Long id) {
 		repository.deleteById(id);
 	}

@@ -82,6 +82,7 @@ public class ProductionControlOrderService {
                 .estimatedDurationMinutes(estimatedDurationMinutes)
                 .build();
 
+        @SuppressWarnings("null")
         ProductionControlOrder saved = repository.save(order);
         logger.info("Created production control order {} for workstation {}", controlOrderNumber, assignedWorkstationId);
 
@@ -127,6 +128,7 @@ public class ProductionControlOrderService {
     /**
      * Get control order by ID.
      */
+    @SuppressWarnings("null")
     public Optional<ProductionControlOrderDTO> getOrderById(Long id) {
         return repository.findById(id).map(this::mapToDTO);
     }
@@ -142,6 +144,7 @@ public class ProductionControlOrderService {
      * Start production on a control order.
      */
     public ProductionControlOrderDTO startProduction(Long id) {
+        @SuppressWarnings("null")
         ProductionControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -162,6 +165,7 @@ public class ProductionControlOrderService {
      * Complete production on a control order.
      */
     public ProductionControlOrderDTO completeProduction(Long id) {
+        @SuppressWarnings("null")
         ProductionControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -195,6 +199,7 @@ public class ProductionControlOrderService {
      * @return Updated control order DTO
      */
     public ProductionControlOrderDTO completeManufacturingProduction(Long id) {
+        @SuppressWarnings("null")
         ProductionControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -285,6 +290,7 @@ public class ProductionControlOrderService {
      * Halt production on a control order.
      */
     public ProductionControlOrderDTO haltProduction(Long id, String reason) {
+        @SuppressWarnings("null")
         ProductionControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -301,6 +307,7 @@ public class ProductionControlOrderService {
      * Update operator notes.
      */
     public ProductionControlOrderDTO updateOperatorNotes(Long id, String notes) {
+        @SuppressWarnings("null")
         ProductionControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -314,6 +321,7 @@ public class ProductionControlOrderService {
      * Update defect information.
      */
     public ProductionControlOrderDTO updateDefects(Long id, Integer defectsFound, Integer defectsReworked, Boolean reworkRequired) {
+        @SuppressWarnings("null")
         ProductionControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -338,6 +346,7 @@ public class ProductionControlOrderService {
             LocalDateTime neededBy,
             String notes) {
         
+        @SuppressWarnings("null")
         ProductionControlOrder order = repository.findById(controlOrderId)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + controlOrderId));
 

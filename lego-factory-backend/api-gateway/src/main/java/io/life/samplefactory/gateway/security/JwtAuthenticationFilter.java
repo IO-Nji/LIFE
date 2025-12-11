@@ -42,11 +42,13 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         "/error"
     );
 
+    @SuppressWarnings("deprecation")
     public JwtAuthenticationFilter(GatewayJwtProperties properties) {
         if (!StringUtils.hasText(properties.getSecret())) {
             throw new IllegalStateException("JWT secret must be configured for the gateway");
         }
-        this.jwtParser = Jwts.parserBuilder()
+        Keys.hmacShaKeyFor(properties.getSecret().getBytes(StandardCharsets.UTF_8));
+        this.jwtParser = Jwts.parser()
             .setSigningKey(Keys.hmacShaKeyFor(properties.getSecret().getBytes(StandardCharsets.UTF_8)))
             .build();
     }

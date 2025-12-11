@@ -21,14 +21,17 @@ public class PartService {
         return repository.findAll();
     }
 
+    @SuppressWarnings("null")
     public Optional<Part> findById(Long id) {
         return repository.findById(id);
     }
 
+    @SuppressWarnings("null")
     public Part save(Part part) {
         return repository.save(part);
     }
 
+    @SuppressWarnings("null")
     public void deleteById(Long id) {
         repository.deleteById(id);
     }

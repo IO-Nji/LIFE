@@ -87,6 +87,7 @@ public class AssemblyControlOrderService {
                 .estimatedDurationMinutes(estimatedDurationMinutes)
                 .build();
 
+        @SuppressWarnings("null")
         AssemblyControlOrder saved = repository.save(order);
         logger.info("Created assembly control order {} for workstation {}", controlOrderNumber, assignedWorkstationId);
 
@@ -123,6 +124,7 @@ public class AssemblyControlOrderService {
     /**
      * Get control order by ID.
      */
+    @SuppressWarnings("null")
     public Optional<AssemblyControlOrderDTO> getOrderById(Long id) {
         return repository.findById(id).map(this::mapToDTO);
     }
@@ -138,6 +140,7 @@ public class AssemblyControlOrderService {
      * Start assembly on a control order.
      */
     public AssemblyControlOrderDTO startAssembly(Long id) {
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -158,6 +161,7 @@ public class AssemblyControlOrderService {
      * Complete assembly on a control order.
      */
     public AssemblyControlOrderDTO completeAssembly(Long id) {
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -184,6 +188,7 @@ public class AssemblyControlOrderService {
      * Credits Modules Supermarket (WS-8) with one module unit.
      */
     public AssemblyControlOrderDTO completeAssemblyProduction(Long id) {
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -232,6 +237,7 @@ public class AssemblyControlOrderService {
      * This represents the completion of the entire product ready for shipping.
      */
     public AssemblyControlOrderDTO completeFinalAssembly(Long id) {
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -277,6 +283,7 @@ public class AssemblyControlOrderService {
      * Halt assembly on a control order.
      */
     public AssemblyControlOrderDTO haltAssembly(Long id) {
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -295,6 +302,7 @@ public class AssemblyControlOrderService {
      * Update operator notes.
      */
     public AssemblyControlOrderDTO updateOperatorNotes(Long id, String notes) {
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -308,6 +316,7 @@ public class AssemblyControlOrderService {
      * Update defect information.
      */
     public AssemblyControlOrderDTO updateDefects(Long id, Integer defectsFound, Integer defectsReworked, Boolean reworkRequired) {
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -326,6 +335,7 @@ public class AssemblyControlOrderService {
      * Update shipping notes.
      */
     public AssemblyControlOrderDTO updateShippingNotes(Long id, String shippingNotes) {
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + id));
 
@@ -345,6 +355,7 @@ public class AssemblyControlOrderService {
             LocalDateTime neededBy,
             String notes) {
         
+        @SuppressWarnings("null")
         AssemblyControlOrder order = repository.findById(controlOrderId)
                 .orElseThrow(() -> new RuntimeException("Control order not found: " + controlOrderId));
 

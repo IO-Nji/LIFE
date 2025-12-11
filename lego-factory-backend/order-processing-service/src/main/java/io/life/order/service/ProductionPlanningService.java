@@ -74,10 +74,12 @@ public class ProductionPlanningService {
             // Send to SimAL API
             String url = simalApiBaseUrl + "/simal/production-order";
             HttpEntity<SimalProductionOrderRequest> requestEntity = new HttpEntity<>(request);
+            @SuppressWarnings("null")
             ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
+                @SuppressWarnings("null")
                 String scheduleId = (String) responseBody.get("scheduleId");
                 Integer estimatedDuration = ((Number) responseBody.get("estimatedDuration")).intValue();
                 String estimatedCompletionStr = (String) responseBody.get("estimatedCompletion");
@@ -118,6 +120,7 @@ public class ProductionPlanningService {
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
+                @SuppressWarnings("null")
                 List<Map<String, Object>> tasks = (List<Map<String, Object>>) responseBody.get("tasks");
                 logger.info("Retrieved {} scheduled tasks for schedule {}", tasks.size(), simalScheduleId);
                 return tasks;
@@ -151,6 +154,7 @@ public class ProductionPlanningService {
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
+                @SuppressWarnings("null")
                 String status = (String) responseBody.get("status");
 
                 // Update production order status based on SimAL status

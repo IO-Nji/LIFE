@@ -44,33 +44,33 @@ public class StockRecordService {
 		Optional<StockRecord> existing = repository.findByWorkstationIdAndItemTypeAndItemId(
 				workstationId, itemType, itemId);
 
-		StockRecord record;
+		StockRecord stockRecord;
 		if (existing.isPresent()) {
-			record = existing.get();
-			record.setQuantity(quantity);
-			record.setLastUpdated(LocalDateTime.now());
+			stockRecord = existing.get();
+			stockRecord.setQuantity(quantity);
+			stockRecord.setLastUpdated(LocalDateTime.now());
 		} else {
-			record = new StockRecord();
-			record.setWorkstationId(workstationId);
-			record.setItemType(itemType);
-			record.setItemId(itemId);
-			record.setQuantity(quantity);
-			record.setLastUpdated(LocalDateTime.now());
+			stockRecord = new StockRecord();
+			stockRecord.setWorkstationId(workstationId);
+			stockRecord.setItemType(itemType);
+			stockRecord.setItemId(itemId);
+			stockRecord.setQuantity(quantity);
+			stockRecord.setLastUpdated(LocalDateTime.now());
 		}
 
-		StockRecord saved = repository.save(record);
+		StockRecord saved = repository.save(stockRecord);
 		return toDto(saved);
 	}
 
 	public StockRecordDto save(StockRecordDto dto) {
-		StockRecord record = new StockRecord();
-		record.setWorkstationId(dto.getWorkstationId());
-		record.setItemType(dto.getItemType());
-		record.setItemId(dto.getItemId());
-		record.setQuantity(dto.getQuantity());
-		record.setLastUpdated(LocalDateTime.now());
+		StockRecord stockRecord = new StockRecord();
+		stockRecord.setWorkstationId(dto.getWorkstationId());
+		stockRecord.setItemType(dto.getItemType());
+		stockRecord.setItemId(dto.getItemId());
+		stockRecord.setQuantity(dto.getQuantity());
+		stockRecord.setLastUpdated(LocalDateTime.now());
 
-		StockRecord saved = repository.save(record);
+		StockRecord saved = repository.save(stockRecord);
 		return toDto(saved);
 	}
 
