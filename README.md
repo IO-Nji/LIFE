@@ -15,29 +15,26 @@ LIFE (LEGO Integrated Factory Execution) is a production-ready prototype designe
 ## System Architecture
 
 LIFE uses a **6-tier microservice architecture** with an API Gateway as the central routing layer:
-
-```plaintext
-┌─────────────────────────────────────────────────────────────┐
-│           React Frontend (Port 5173/5174)                    │
-│  ┌──────────────┬──────────────┬──────────────────────────┐ │
-│  │ Dashboard    │ Products     │ Workstation Pages        │ │
-│  │ (Multi-role) │ Catalog      │ (Plant WH, Modules SM)   │ │
-│  └──────────────┴──────────────┴──────────────────────────┘ │
-└───────────────────────────┬────────────────────────────────┘
-                            │
-        ┌───────────────────▼────────────────────┐
-        │   API Gateway (Port 8011)              │
-        │   - Route all requests                 │
-        │   - CORS support                       │
-        │   - Load balancing                     │
-        └───┬──────┬──────┬───────┬────┬────────┘
-            │      │      │       │    │
-       ┌────▼──┐ ┌─▼────┐┌──▼──┐┌─▼──┐┌──▼──┐
-       │ User  │ │Master││Stock││Order│ │Simal│
-       │Service│ │data  ││ mgmt││Proc.│ │Integ│
-       │ 8012  │ │ 8013 ││8014 ││ 8015│ │ 8016│
-       └───────┘ └──────┘└─────┘└────┘└─────┘
-```
+┌────────────────────────────────────────────────────────────┐
+│           React Frontend (Port 5173/5174)                  │
+│  ┌──────────────┬──────────────┬─────────────────────────┐ │
+│  │ Dashboard    │ Products     │ Workstation Pages       │ │
+│  │ (Multi-role) │ Catalog      │ (Plant WH, Modules SM)  │ │
+│  └──────────────┴──────────────┴─────────────────────────┘ │
+└──────────────────────────--─┬──────────────────────────────┘
+                              │
+             ┌───────────────────▼─────────────┐
+             │      API Gateway (Port 8011)    │
+             │      - Route all requests       │
+             │      - CORS support             │
+             │      - Load balancing           │
+             └───┬──────┬──────┬───────┬────┬──┘
+                 │      │      │       │    │
+           ┌────▼──┐┌─▼────┐┌──▼──┐┌─▼──-┐ ┌──▼──┐
+           │ User  ││Master││Stock││Order│ │Simal│
+           │Service││data  ││ mgmt││Proc.│ │Integ│
+           │ 8012  ││ 8013 ││8014 ││ 8015│ │ 8016│
+           └───────┘└──────┘└─────┘└───-─┘ └─────┘
 
 **Backend Services**:
 
@@ -55,7 +52,6 @@ LIFE uses a **6-tier microservice architecture** with an API Gateway as the cent
 - **Database**: H2 (file-based, one per service) for data isolation and easy deployment
 - **Frontend**: React 18+, Vite, Axios, React Router
 - **Tools**: Visual Studio Code, Node.js, npm
-
 
 ## Project Structure
 
@@ -202,7 +198,8 @@ cd inventory-service; .\mvnw clean package -DskipTests; cd ..
 cd order-processing-service; .\mvnw clean package -DskipTests; cd ..
 cd simal-integration-service; .\mvnw clean package -DskipTests; cd ..
 cd api-gateway; .\mvnw clean package -DskipTests; cd ..
-```
+
+
 ## Configuration Management
 
 ### Environment-Specific Configuration
@@ -228,7 +225,7 @@ spring:
 ```
 
 **Service Discovery** (API Gateway):
-```yaml
+
 spring:
   cloud:
     gateway:
@@ -237,14 +234,12 @@ spring:
           uri: http://localhost:8012
           predicates:
             - Path=/api/users/**,/api/auth/**
-```
 
 **Security Configuration**:
-```yaml
+
 jwt:
   secret: ${JWT_SECRET:default-secret-key}
   expiration: 86400000  # 24 hours
-```
 
 **Logging Configuration**:
 ```yaml
