@@ -1,4 +1,4 @@
-package io.life.samplefactory.gateway.exception;
+package io.life.gateway.exception;
 
 /**
  * Exception thrown when there is a validation error.

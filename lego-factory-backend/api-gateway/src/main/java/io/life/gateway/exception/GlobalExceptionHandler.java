@@ -1,6 +1,5 @@
-package io.life.samplefactory.gateway.exception;
+package io.life.gateway.exception;
 
-import io.life.samplefactory.gateway.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -9,6 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+
+import io.life.gateway.dto.ErrorResponse;
 
 import java.util.stream.Collectors;
 

@@ -1,4 +1,4 @@
-package io.life.order.controller;
+package io.life.inventory.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ public class HealthController {
         Map<String, Object> healthStats = new HashMap<>();
         
         // Basic service information
-        healthStats.put("service", "Order Processing Service");
+        healthStats.put("service", "Inventory Service");
         healthStats.put("status", "UP");
         healthStats.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         healthStats.put("version", "1.0.0");
@@ -57,13 +57,6 @@ public class HealthController {
         system.put("os", System.getProperty("os.name") + " " + System.getProperty("os.version"));
         system.put("processors", Runtime.getRuntime().availableProcessors());
         healthStats.put("system", system);
-        
-        // Order processing specific information
-        Map<String, Object> orderProcessing = new HashMap<>();
-        orderProcessing.put("functions", "Order Management, Assembly Tracking, Manufacturing Control");
-        orderProcessing.put("description", "Handles order lifecycle and manufacturing operations");
-        orderProcessing.put("endpoints", "/api/orders, /api/assembly");
-        healthStats.put("order_processing", orderProcessing);
         
         return ResponseEntity.ok(healthStats);
     }

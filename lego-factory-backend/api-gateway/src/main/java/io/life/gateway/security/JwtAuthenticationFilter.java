@@ -1,4 +1,4 @@
-package io.life.samplefactory.gateway.security;
+package io.life.gateway.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

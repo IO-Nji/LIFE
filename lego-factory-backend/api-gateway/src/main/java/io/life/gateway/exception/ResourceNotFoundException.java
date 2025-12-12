@@ -1,4 +1,4 @@
-package io.life.samplefactory.gateway.exception;
+package io.life.gateway.exception;
 
 /**
  * Exception thrown when a requested resource is not found.

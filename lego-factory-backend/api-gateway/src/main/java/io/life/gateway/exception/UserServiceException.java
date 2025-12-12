@@ -1,4 +1,4 @@
-package io.life.samplefactory.gateway.exception;
+package io.life.gateway.exception;
 
 /**
  * Base exception class for all service exceptions.

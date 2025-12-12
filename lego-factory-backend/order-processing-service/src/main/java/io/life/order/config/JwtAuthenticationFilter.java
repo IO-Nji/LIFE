@@ -1,8 +1,11 @@
 package io.life.order.config;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -10,21 +13,25 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
-import java.util.ArrayList;
-import java.util.List;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Value("${security.jwt.secret:ad4c8c63e0f74d7a9f1af99f0ffeb4dfc144b9edfd2a4b0c8c6c98ab7e4f2b3d}")
+    @Value("${security.jwt.secret:MySecretKeyForJWTTokenGeneration2024AtLeast32Characters}")
     private String jwtSecret;
 
     @Override
-    protected void doFilterInternal(@SuppressWarnings("null") jakarta.servlet.http.HttpServletRequest request,
-                                    @SuppressWarnings("null") jakarta.servlet.http.HttpServletResponse response,
-                                    @SuppressWarnings("null") jakarta.servlet.FilterChain filterChain)
-            throws jakarta.servlet.ServletException, java.io.IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
@@ -33,15 +40,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             try {
                 SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-                Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
+                Claims claims = Jwts.parser()
+                    .verifyWith(key)
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseSignedClaims(token)
+                    .getPayload();
 
                 String username = claims.getSubject();
                 
-                // The token contains 'role' as a single string, not 'roles' as a list
+                // Extract role from token claims
                 Object roleObj = claims.get("role");
                 String role = (roleObj != null) ? roleObj.toString() : null;
 

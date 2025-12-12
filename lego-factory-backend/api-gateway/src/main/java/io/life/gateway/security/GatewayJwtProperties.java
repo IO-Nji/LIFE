@@ -1,4 +1,4 @@
-package io.life.samplefactory.gateway.security;
+package io.life.gateway.security;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

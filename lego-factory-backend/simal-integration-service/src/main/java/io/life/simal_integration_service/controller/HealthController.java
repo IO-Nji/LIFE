@@ -1,17 +1,17 @@
-package io.life.order.controller;
+package io.life.simal_integration_service.controller;
+import java.sql.Connection;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://localhost:80"})
@@ -25,7 +25,7 @@ public class HealthController {
         Map<String, Object> healthStats = new HashMap<>();
         
         // Basic service information
-        healthStats.put("service", "Order Processing Service");
+        healthStats.put("service", "SimAL Integration Service");
         healthStats.put("status", "UP");
         healthStats.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         healthStats.put("version", "1.0.0");
@@ -58,12 +58,13 @@ public class HealthController {
         system.put("processors", Runtime.getRuntime().availableProcessors());
         healthStats.put("system", system);
         
-        // Order processing specific information
-        Map<String, Object> orderProcessing = new HashMap<>();
-        orderProcessing.put("functions", "Order Management, Assembly Tracking, Manufacturing Control");
-        orderProcessing.put("description", "Handles order lifecycle and manufacturing operations");
-        orderProcessing.put("endpoints", "/api/orders, /api/assembly");
-        healthStats.put("order_processing", orderProcessing);
+        // SimAL integration specific information
+        Map<String, Object> simalIntegration = new HashMap<>();
+        simalIntegration.put("functions", "SimAL.Scheduler Integration, Manufacturing Simulation Interface");
+        simalIntegration.put("description", "Bridges LEGO Factory with SimAL.Scheduler simulation system");
+        simalIntegration.put("external_api", "SimAL.Scheduler");
+        simalIntegration.put("port", "8085");
+        healthStats.put("simal_integration", simalIntegration);
         
         return ResponseEntity.ok(healthStats);
     }
