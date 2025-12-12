@@ -56,6 +56,75 @@ LIFE uses a **6-tier microservice architecture** with an API Gateway as the cent
 - **Frontend**: React 18+, Vite, Axios, React Router
 - **Tools**: Visual Studio Code, Node.js, npm
 
+
+## Project Structure
+
+```plaintext
+lego-sample-factory/
+├── api-gateway/                    # API Gateway service (Port 8011)
+│   ├── src/main/
+│   │   ├── java/com/lego/factory/gateway/
+│   │   └── resources/
+│   │       ├── application.yml     # Gateway routing configuration
+│   │       └── application-{env}.yml
+│   └── pom.xml
+├── user-service/                   # User management service (Port 8012)
+│   ├── src/main/
+│   │   ├── java/com/lego/factory/user/
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       ├── data.sql           # Initial user data
+│   │       └── schema.sql
+│   └── pom.xml
+├── masterdata-service/            # Product catalog service (Port 8013)
+│   ├── src/main/
+│   │   ├── java/com/lego/factory/masterdata/
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       ├── data.sql           # Product variants, modules, parts
+│   │       └── schema.sql
+│   └── pom.xml
+├── inventory-service/             # Stock management service (Port 8014)
+│   ├── src/main/
+│   │   ├── java/com/lego/factory/inventory/
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       ├── data.sql           # Initial stock records
+│   │       └── schema.sql
+│   └── pom.xml
+├── order-processing-service/      # Order management service (Port 8015)
+│   ├── src/main/
+│   │   ├── java/com/lego/factory/orders/
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       └── schema.sql
+│   └── pom.xml
+├── simal-integration-service/     # Production scheduling service (Port 8016)
+│   ├── src/main/
+│   │   ├── java/com/lego/factory/simal/
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       └── schema.sql
+│   └── pom.xml
+├── lego-factory-frontend/         # React frontend application
+│   ├── src/
+│   │   ├── components/            # Reusable UI components
+│   │   ├── pages/                 # Route-specific pages
+│   │   ├── services/              # API communication
+│   │   └── utils/                 # Helper functions
+│   ├── package.json
+│   └── vite.config.js
+├── logs/                          # Centralized log storage
+│   ├── application.log            # General application logs
+│   ├── error.log                  # Error-specific logs
+│   └── debug.log                  # Debug-level logs
+├── data/                          # H2 database files
+│   ├── user-service.mv.db
+│   ├── masterdata-service.mv.db
+│   └── [other-service-dbs]
+└── README.md
+
+
 ## Current Features & Status
 
 ### ✅ Implemented Features
@@ -134,6 +203,69 @@ cd order-processing-service; .\mvnw clean package -DskipTests; cd ..
 cd simal-integration-service; .\mvnw clean package -DskipTests; cd ..
 cd api-gateway; .\mvnw clean package -DskipTests; cd ..
 ```
+## Configuration Management
+
+### Environment-Specific Configuration
+
+Each service uses **Spring Boot profiles** for environment-specific configuration:
+
+- **application.yml**: Base configuration shared across all environments
+- **application-dev.yml**: Development environment settings
+- **application-prod.yml**: Production environment settings
+- **application-test.yml**: Testing environment settings
+
+### Key Configuration Areas
+
+**Database Configuration**:
+```yaml
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/${spring.application.name}
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+```
+
+**Service Discovery** (API Gateway):
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://localhost:8012
+          predicates:
+            - Path=/api/users/**,/api/auth/**
+```
+
+**Security Configuration**:
+```yaml
+jwt:
+  secret: ${JWT_SECRET:default-secret-key}
+  expiration: 86400000  # 24 hours
+```
+
+**Logging Configuration**:
+```yaml
+logging:
+  level:
+    com.lego.factory: DEBUG
+    org.springframework.security: DEBUG
+  file:
+    name: ./logs/application.log
+```
+
+### Environment Variables
+
+Set these environment variables for production deployments:
+
+- `JWT_SECRET`: Custom JWT signing key
+- `SPRING_PROFILES_ACTIVE`: Active profile (dev, prod, test)
+- `DATABASE_PATH`: Custom database file location
+- `LOG_LEVEL`: Application logging level
+
+
 
 ### Start Backend Services
 
@@ -192,6 +324,96 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:5173`
+
+
+## Health Monitoring & Observability
+
+### Health Check Endpoints
+
+All services expose **Spring Boot Actuator** health endpoints for monitoring and load balancer integration:
+
+**Health Check URLs**:
+- API Gateway: `http://localhost:8011/actuator/health`
+- User Service: `http://localhost:8012/actuator/health`
+- Masterdata Service: `http://localhost:8013/actuator/health`
+- Inventory Service: `http://localhost:8014/actuator/health`
+- Order Processing Service: `http://localhost:8015/actuator/health`
+- SimAL Integration Service: `http://localhost:8016/actuator/health`
+
+**Health Response Format**:
+```json
+{
+  "status": "UP",
+  "components": {
+    "db": {
+      "status": "UP",
+      "details": {
+        "database": "H2",
+        "validationQuery": "isValid()"
+      }
+    },
+    "diskSpace": {
+      "status": "UP",
+      "details": {
+        "total": 107374182400,
+        "free": 21474836480,
+        "threshold": 10485760
+      }
+    }
+  }
+}
+```
+
+### Available Health Indicators
+
+- **Database Health**: H2 connection status and query validation
+- **Disk Space**: Available storage monitoring
+- **Custom Business Logic**: Service-specific health checks
+- **Memory Usage**: JVM heap and non-heap memory status
+
+### Additional Actuator Endpoints
+
+Enable additional monitoring endpoints by adding to `application.yml`:
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+```
+
+**Available Endpoints**:
+- `/actuator/info` - Application information and build details
+- `/actuator/metrics` - Application metrics (requests, memory, etc.)
+- `/actuator/prometheus` - Prometheus-formatted metrics
+- `/actuator/loggers` - Runtime log level management
+
+### Production Monitoring
+
+For production deployments, integrate with:
+
+- **Load Balancers**: Use health endpoints for automatic failover
+- **Monitoring Tools**: Prometheus, Grafana, or Application Insights
+- **Alerting**: Set up alerts for service DOWN status or high error rates
+- **Log Aggregation**: Centralize logs using ELK stack or similar
+
+// ...existing code...
+
+### Default Test Accounts
+
+- **Admin Account**: `legoAdmin` / `legoPass`
+  - Full system access, user management, workstation configuration
+
+- **Plant Warehouse**: `warehouseOperator` / `warehousePass`
+  - Access to plant warehouse operations and customer order fulfillment
+
+- **Modules Supermarket**: `modulesSupermarketOp` / `modulesPass`
+  - Warehouse order management and module inventory fulfillment
+
 
 ### Default Test Accounts
 

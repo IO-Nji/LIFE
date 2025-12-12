@@ -122,3 +122,20 @@ HELP.md
 
 # Specific exclusions from previous config
 lego-factory-backend/user-service/pomCheck.yml
+.idea/compiler.xml
+.idea/easycode.ignore
+.idea/encodings.xml
+.idea/jarRepositories.xml
+.idea/lego-sample-factory.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.gitignore
+.idea/compiler.xml
+.idea/easycode.ignore
+.idea/encodings.xml
+.idea/jarRepositories.xml
+.idea/lego-sample-factory.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
