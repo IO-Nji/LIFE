@@ -27,6 +27,7 @@ public class SupplyOrderService {
     private static final Long PARTS_SUPPLY_WAREHOUSE_ID = 9L; // Workstation 9
 
     private final SupplyOrderRepository repository;
+    @SuppressWarnings("unused")
     private final RestTemplate restTemplate;
 
     public SupplyOrderService(SupplyOrderRepository repository, RestTemplate restTemplate) {
@@ -73,6 +74,7 @@ public class SupplyOrderService {
                 .notes(notes)
                 .build();
 
+        @SuppressWarnings("null")
         SupplyOrder saved = repository.save(order);
 
         // Set the supply order reference for items
@@ -116,6 +118,7 @@ public class SupplyOrderService {
     /**
      * Get a specific supply order by ID.
      */
+    @SuppressWarnings("null")
     public SupplyOrderDTO getSupplyOrder(Long id) {
         return repository.findById(id)
                 .map(this::mapToDTO)
@@ -128,6 +131,7 @@ public class SupplyOrderService {
      * Only fulfills items that are in stock (partial fulfillment if necessary).
      */
     public SupplyOrderDTO fulfillSupplyOrder(Long id) {
+        @SuppressWarnings("null")
         SupplyOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Supply order not found: " + id));
 
@@ -169,6 +173,7 @@ public class SupplyOrderService {
      * Reject a supply order (insufficient stock or other reason).
      */
     public SupplyOrderDTO rejectSupplyOrder(Long id, String reason) {
+        @SuppressWarnings("null")
         SupplyOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Supply order not found: " + id));
 
@@ -187,6 +192,7 @@ public class SupplyOrderService {
      * Cancel a supply order.
      */
     public SupplyOrderDTO cancelSupplyOrder(Long id, String reason) {
+        @SuppressWarnings("null")
         SupplyOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Supply order not found: " + id));
 
@@ -205,6 +211,7 @@ public class SupplyOrderService {
      * Update supply order status.
      */
     public SupplyOrderDTO updateStatus(Long id, String newStatus) {
+        @SuppressWarnings("null")
         SupplyOrder order = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Supply order not found: " + id));
 

@@ -1,6 +1,5 @@
 package io.life.masterdata.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +16,13 @@ import java.util.Map;
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://localhost:80"})
 public class HealthController {
 
-    @Autowired
-    private DataSource dataSource;
+    private static final String STATUS = "status";
+
+    private final DataSource dataSource;
+
+    public HealthController(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     @GetMapping("/")
     public ResponseEntity<Map<String, Object>> getHealthStats() {
@@ -26,7 +30,7 @@ public class HealthController {
         
         // Basic service information
         healthStats.put("service", "Master Data Service");
-        healthStats.put("status", "UP");
+        healthStats.put(STATUS, "UP");
         healthStats.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         healthStats.put("version", "1.0.0");
         
@@ -42,11 +46,11 @@ public class HealthController {
         // Database connectivity
         Map<String, Object> database = new HashMap<>();
         try (Connection connection = dataSource.getConnection()) {
-            database.put("status", "UP");
+            database.put(STATUS, "UP");
             database.put("database", connection.getMetaData().getDatabaseProductName());
             database.put("driver", connection.getMetaData().getDriverName());
         } catch (Exception e) {
-            database.put("status", "DOWN");
+            database.put(STATUS, "DOWN");
             database.put("error", e.getMessage());
         }
         healthStats.put("database", database);

@@ -27,6 +27,8 @@ public class ProductionPlanningService {
     private static final Logger logger = LoggerFactory.getLogger(ProductionPlanningService.class);
     private static final Long PRODUCTION_CONTROL_WORKSTATION_ID = 20L; // Production Control workstation
     private static final Long ASSEMBLY_CONTROL_WORKSTATION_ID = 21L;   // Assembly Control workstation
+    private static final String PRODUCTION_ORDER_NOT_FOUND_ERROR = "Production order not found: ";
+    private static final String SIMAL_SCHEDULED_ORDERS_PATH = "/simal/scheduled-orders/";
 
     private final ProductionOrderService productionOrderService;
     private final ProductionControlOrderService productionControlOrderService;
@@ -54,7 +56,7 @@ public class ProductionPlanningService {
      */
     public ProductionOrderDTO submitProductionOrderToSimal(Long productionOrderId) {
         ProductionOrderDTO order = productionOrderService.getProductionOrderById(productionOrderId)
-                .orElseThrow(() -> new RuntimeException("Production order not found: " + productionOrderId));
+                .orElseThrow(() -> new RuntimeException(PRODUCTION_ORDER_NOT_FOUND_ERROR + productionOrderId));
 
         // Check if already submitted
         if ("SUBMITTED".equals(order.getStatus()) || "SCHEDULED".equals(order.getStatus())) {
@@ -115,7 +117,7 @@ public class ProductionPlanningService {
      */
     public List<Map<String, Object>> getScheduledTasks(String simalScheduleId) {
         try {
-            String url = simalApiBaseUrl + "/simal/scheduled-orders/" + simalScheduleId;
+            String url = simalApiBaseUrl + SIMAL_SCHEDULED_ORDERS_PATH + simalScheduleId;
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -141,7 +143,7 @@ public class ProductionPlanningService {
      */
     public ProductionOrderDTO updateProductionProgress(Long productionOrderId) {
         ProductionOrderDTO order = productionOrderService.getProductionOrderById(productionOrderId)
-                .orElseThrow(() -> new RuntimeException("Production order not found: " + productionOrderId));
+                .orElseThrow(() -> new RuntimeException(PRODUCTION_ORDER_NOT_FOUND_ERROR + productionOrderId));
 
         if (order.getSimalScheduleId() == null) {
             logger.warn("Production order {} not linked to SimAL schedule", order.getProductionOrderNumber());
@@ -149,7 +151,7 @@ public class ProductionPlanningService {
         }
 
         try {
-            String url = simalApiBaseUrl + "/simal/scheduled-orders/" + order.getSimalScheduleId() + "/status";
+            String url = simalApiBaseUrl + SIMAL_SCHEDULED_ORDERS_PATH + order.getSimalScheduleId() + "/status";
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -183,14 +185,14 @@ public class ProductionPlanningService {
      */
     public ProductionOrderDTO startProduction(Long productionOrderId) {
         ProductionOrderDTO order = productionOrderService.getProductionOrderById(productionOrderId)
-                .orElseThrow(() -> new RuntimeException("Production order not found: " + productionOrderId));
+                .orElseThrow(() -> new RuntimeException(PRODUCTION_ORDER_NOT_FOUND_ERROR + productionOrderId));
 
         if (!"SCHEDULED".equals(order.getStatus())) {
             throw new IllegalStateException("Cannot start production - order status is " + order.getStatus());
         }
 
         try {
-            String url = simalApiBaseUrl + "/simal/scheduled-orders/" + order.getSimalScheduleId() + "/start";
+            String url = simalApiBaseUrl + SIMAL_SCHEDULED_ORDERS_PATH + order.getSimalScheduleId() + "/start";
             ResponseEntity<Map> response = restTemplate.postForEntity(url, new HashMap<>(), Map.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
@@ -211,10 +213,10 @@ public class ProductionPlanningService {
      */
     public ProductionOrderDTO completeProduction(Long productionOrderId) {
         ProductionOrderDTO order = productionOrderService.getProductionOrderById(productionOrderId)
-                .orElseThrow(() -> new RuntimeException("Production order not found: " + productionOrderId));
+                .orElseThrow(() -> new RuntimeException(PRODUCTION_ORDER_NOT_FOUND_ERROR + productionOrderId));
 
         try {
-            String url = simalApiBaseUrl + "/simal/scheduled-orders/" + order.getSimalScheduleId() + "/complete";
+            String url = simalApiBaseUrl + SIMAL_SCHEDULED_ORDERS_PATH + order.getSimalScheduleId() + "/complete";
             ResponseEntity<Map> response = restTemplate.postForEntity(url, new HashMap<>(), Map.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
@@ -236,7 +238,7 @@ public class ProductionPlanningService {
      */
     public void createControlOrdersFromSimalSchedule(Long productionOrderId, String simalScheduleId) {
         ProductionOrderDTO order = productionOrderService.getProductionOrderById(productionOrderId)
-                .orElseThrow(() -> new RuntimeException("Production order not found: " + productionOrderId));
+                .orElseThrow(() -> new RuntimeException(PRODUCTION_ORDER_NOT_FOUND_ERROR + productionOrderId));
 
         try {
             // Get scheduled tasks from SimAL

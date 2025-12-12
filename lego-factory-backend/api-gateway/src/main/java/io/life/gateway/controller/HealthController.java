@@ -17,6 +17,10 @@ import java.util.List;
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://localhost:80"})
 public class HealthController {
 
+    private static final String SERVICE_KEY = "service";
+    private static final String TARGET_KEY = "target";
+    private static final String LOCALHOST_URL = "http://localhost:";
+
     @Value("${USER_SERVICE_PORT:8012}")
     private String userServicePort;
 
@@ -37,7 +41,7 @@ public class HealthController {
         Map<String, Object> healthStats = new HashMap<>();
         
         // Basic service information
-        healthStats.put("service", "API Gateway");
+        healthStats.put(SERVICE_KEY, "API Gateway");
         healthStats.put("status", "UP");
         healthStats.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         healthStats.put("version", "1.0.0");
@@ -70,26 +74,26 @@ public class HealthController {
         
         Map<String, String> userRoute = new HashMap<>();
         userRoute.put("path", "/api/users/**");
-        userRoute.put("service", "user-service");
-        userRoute.put("target", "http://localhost:" + userServicePort);
+        userRoute.put(SERVICE_KEY, "user-service");
+        userRoute.put(TARGET_KEY, LOCALHOST_URL + userServicePort);
         routes.add(userRoute);
         
         Map<String, String> masterdataRoute = new HashMap<>();
         masterdataRoute.put("path", "/api/masterdata/**");
-        masterdataRoute.put("service", "masterdata-service");
-        masterdataRoute.put("target", "http://localhost:" + masterdataServicePort);
+        masterdataRoute.put(SERVICE_KEY, "masterdata-service");
+        masterdataRoute.put(TARGET_KEY, LOCALHOST_URL + masterdataServicePort);
         routes.add(masterdataRoute);
         
         Map<String, String> inventoryRoute = new HashMap<>();
         inventoryRoute.put("path", "/api/inventory/**");
-        inventoryRoute.put("service", "inventory-service");
-        inventoryRoute.put("target", "http://localhost:" + inventoryServicePort);
+        inventoryRoute.put(SERVICE_KEY, "inventory-service");
+        inventoryRoute.put(TARGET_KEY, LOCALHOST_URL + inventoryServicePort);
         routes.add(inventoryRoute);
         
         Map<String, String> orderRoute = new HashMap<>();
         orderRoute.put("path", "/api/orders/**, /api/assembly/**");
-        orderRoute.put("service", "order-processing-service");
-        orderRoute.put("target", "http://localhost:" + orderProcessingServicePort);
+        orderRoute.put(SERVICE_KEY, "order-processing-service");
+        orderRoute.put(TARGET_KEY, LOCALHOST_URL + orderProcessingServicePort);
         routes.add(orderRoute);
         
         gateway.put("routes", routes);

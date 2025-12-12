@@ -13,8 +13,11 @@ import java.time.format.DateTimeFormatter;
 @RestController
 public class HealthPageController {
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
+
+    public HealthPageController(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     @GetMapping(value = "/status", produces = MediaType.TEXT_HTML_VALUE)
     public String getHealthPage() {

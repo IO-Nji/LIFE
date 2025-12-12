@@ -3,6 +3,7 @@
 This document defines all configuration variables (keys, port numbers, user credentials, JWT secrets, etc.) used by the LEGO Sample Factory microservices application. These variables are consumed by Spring Boot microservices and the React frontend.
 
 **IMPORTANT:** This file contains placeholder values only.
+
 - Actual local development values should be stored in the **`.env` file at the project root (and added to `.gitignore`).**
 - For Docker deployment, these values will be passed as environment variables to containers.
 

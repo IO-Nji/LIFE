@@ -17,8 +17,13 @@ import java.util.Map;
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://localhost:80"})
 public class HealthController {
 
-    @Autowired
-    private DataSource dataSource;
+    private static final String STATUS_KEY = "status";
+
+    private final DataSource dataSource;
+
+    public HealthController(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     @GetMapping("/")
     public ResponseEntity<Map<String, Object>> getHealthStats() {
@@ -26,7 +31,7 @@ public class HealthController {
         
         // Basic service information
         healthStats.put("service", "Order Processing Service");
-        healthStats.put("status", "UP");
+        healthStats.put(STATUS_KEY, "UP");
         healthStats.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         healthStats.put("version", "1.0.0");
         
@@ -42,11 +47,11 @@ public class HealthController {
         // Database connectivity
         Map<String, Object> database = new HashMap<>();
         try (Connection connection = dataSource.getConnection()) {
-            database.put("status", "UP");
+            database.put(STATUS_KEY, "UP");
             database.put("database", connection.getMetaData().getDatabaseProductName());
             database.put("driver", connection.getMetaData().getDriverName());
         } catch (Exception e) {
-            database.put("status", "DOWN");
+            database.put(STATUS_KEY, "DOWN");
             database.put("error", e.getMessage());
         }
         healthStats.put("database", database);
