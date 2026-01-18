@@ -13,7 +13,7 @@
 
 *A full-stack, microservice-based supply chain control platform that translates academic manufacturing research into production software. Built from ground up for a Master's thesis demonstrating digital transformation of manufacturing operations.*
 
-[View Demo](#-quick-start) • [Architecture](#-system-architecture) • [Technical Stack](#-technology-stack) • [Documentation](#-comprehensive-documentation)
+[View Demo](https://lego.nji.io) • [Architecture](#-system-architecture) • [Technical Stack](#-technology-stack) • [Documentation](#-comprehensive-documentation)
 
 </div>
 
