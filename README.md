@@ -266,8 +266,6 @@ docker-compose up -d
 | [README.devops.md](README.devops.md) | Deployment, configuration, troubleshooting, operations guide |
 | [BusinessScenarios.md](BusinessScenarios.md) | 4 order fulfillment scenarios with step-by-step workflows |
 | [TESTING_GUIDE.md](TESTING_GUIDE.md) | End-to-end testing procedures with test accounts |
-| [IMPLEMENTATION_ROADMAP.md](_dev-docs/ai-helper-documents/IMPLEMENTATION_ROADMAP.md) | Feature development plan (3 stages) |
-| [.github/copilot-instructions.md](.github/copilot-instructions.md) | Comprehensive AI agent onboarding (550+ lines) |
 
 ---
 
